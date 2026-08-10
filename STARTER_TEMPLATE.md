@@ -72,6 +72,8 @@ git remote set-url origin https://github.com/YOUR-USERNAME/deep-sea-timer.git
 Otherwise your first push overwrites the wizard.
 
 **2. Rename the app** in `package.json` (`name`) and `index.html` (`<title>`).
+Also update the absolute path in `.claude/launch.json` — it points at the
+wizard-timer folder, so a copy will otherwise start the *old* app's dev server.
 
 **3. Create the theme folder.**
 
