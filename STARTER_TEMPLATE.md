@@ -172,8 +172,13 @@ Run these from the repo root before a commit that touched the UI. Both should
 print nothing:
 
 ```bash
-grep -rEn "#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(" src --exclude-dir=themes
+grep -rEn "#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(" src --exclude-dir=themes --exclude=colour.ts
 ```
+
+`colour.ts` is excluded because it is the colour *utility* — it holds a black
+fallback for an empty gradient and builds `rgba()` strings out of values the
+theme supplied. It defines no colours of its own. Nothing else gets an
+exemption.
 
 ```bash
 grep -rEn "^\s*import .*(themes|theme\.config)" src/core
