@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wizard-timer",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/omistaja/Documents/wizard-timer", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}

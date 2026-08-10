@@ -1,0 +1,323 @@
+/*
+ * Layout, spacing and structure. Nothing else.
+ *
+ * THERE IS NOT ONE LITERAL COLOUR, FONT OR IMAGE PATH IN THIS FILE, and there
+ * must never be. Every appearance value arrives as a `--wt-*` custom property
+ * set by <ThemeProvider> from the active theme.config.ts. That is the whole
+ * reason a new theme is a single-file edit — the moment a hex code lands here,
+ * it stops being true.
+ *
+ * If you need a value this file doesn't have, add the field to
+ * /src/themes/theme.types.ts and map it in ThemeProvider.tsx. Don't inline it.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+/* ── Shell ─────────────────────────────────────────────────────────────── */
+
+.wt-root {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh; /* accounts for mobile browser chrome */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 3rem) 1rem;
+
+  background-color: var(--wt-color-background);
+  background-image: var(--wt-image-background);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  color: var(--wt-color-text);
+  font-family: var(--wt-font-body);
+  line-height: 1.5;
+  /* Left-aligned, never justified — justified text is harder to track. */
+  text-align: center;
+}
+
+/* Scrim between the background art and the content, so text contrast is a
+   property of the theme rather than a property of whatever image is loaded. */
+.wt-root::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--wt-color-background-scrim);
+  pointer-events: none;
+}
+
+.wt-main {
+  position: relative; /* above the scrim */
+  z-index: 1;
+  width: 100%;
+  max-width: 34rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 1.75rem);
+}
+
+.wt-title {
+  margin: 0;
+  font-family: var(--wt-font-display);
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 600;
+}
+
+/* ── Stage: character + candle ─────────────────────────────────────────── */
+
+.wt-stage {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(0.5rem, 4vw, 2.5rem);
+  /* Headroom for the flame, which sits above the top of the candle box and
+     would otherwise overlap the heading at the start of a session. */
+  padding-top: calc(var(--wt-candle-flame-height) + 0.5rem);
+}
+
+.wt-stage__character {
+  /* Theme sets the intended height; the viewport cap keeps it on screen on
+     short windows. */
+  height: min(var(--wt-character-height), 30vh);
+  width: auto;
+}
+
+.wt-candle {
+  position: relative;
+  width: var(--wt-candle-width);
+  height: var(--wt-candle-height);
+  flex: none;
+}
+
+/*
+ * The wax is a background image pinned to the bottom of a box whose height
+ * shrinks. The image keeps its full size, so shortening the box clips the
+ * column from the top — burning down, rather than scaling down.
+ */
+.wt-candle__wax {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: var(--wt-image-candle-wax);
+  background-size: 100% var(--wt-candle-height);
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  transition: height 300ms linear;
+}
+
+.wt-candle__flame-anchor {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  transition: bottom 300ms linear;
+}
+
+.wt-candle__glow {
+  position: absolute;
+  width: calc(var(--wt-candle-flame-height) * 3.2);
+  height: calc(var(--wt-candle-flame-height) * 3.2);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--wt-color-candle-glow) 0%, transparent 68%);
+  pointer-events: none;
+}
+
+.wt-candle__flame-anchor[data-lit='false'] .wt-candle__glow {
+  opacity: 0;
+}
+
+.wt-candle__flame {
+  position: relative;
+  height: var(--wt-candle-flame-height);
+  width: auto;
+  transform-origin: 50% 90%;
+  animation: wt-flicker 2.4s ease-in-out infinite;
+}
+
+/* Slow and small on purpose — a candle, not an alarm. */
+@keyframes wt-flicker {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.97, 1.05);
+    opacity: 0.92;
+  }
+}
+
+/* ── Readout ───────────────────────────────────────────────────────────── */
+
+.wt-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wt-display__time {
+  margin: 0;
+  font-family: var(--wt-font-display);
+  /* Fixed-width digits, so the layout doesn't twitch every second. */
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(2.75rem, 11vw, 4.5rem);
+  line-height: 1;
+}
+
+.wt-display__tagline {
+  margin: 0.6rem 0 0;
+  color: var(--wt-color-text-muted);
+  font-size: 0.95rem;
+  max-width: 26rem;
+}
+
+/* ── Finished panel ────────────────────────────────────────────────────── */
+
+.wt-finished {
+  background: var(--wt-color-surface);
+  border: 1px solid var(--wt-color-surface-border);
+  border-radius: 14px;
+  padding: 0.9rem 1.25rem;
+  max-width: 30rem;
+}
+
+.wt-finished__heading {
+  margin: 0 0 0.3rem;
+  font-family: var(--wt-font-display);
+  font-size: 1.1rem;
+}
+
+.wt-finished__body {
+  margin: 0;
+  color: var(--wt-color-text-muted);
+  font-size: 0.95rem;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+
+.wt-button {
+  font-family: var(--wt-font-body);
+  font-size: 1rem;
+  /* 44px floor: WCAG 2.1 AA target size. */
+  min-height: 44px;
+  padding: 0.7rem 1.3rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    filter 160ms ease,
+    background-color 160ms ease;
+}
+
+.wt-button:focus-visible {
+  outline: 3px solid var(--wt-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.wt-button:hover {
+  filter: brightness(1.08);
+}
+
+.wt-button--primary {
+  background: var(--wt-color-accent);
+  color: var(--wt-color-on-accent);
+  font-weight: 600;
+}
+
+.wt-button--quiet {
+  background: transparent;
+  color: var(--wt-color-text);
+  border-color: var(--wt-color-surface-border);
+}
+
+.wt-button--chip {
+  min-height: 44px;
+  padding: 0.5rem 1.05rem;
+  background: var(--wt-color-surface);
+  color: var(--wt-color-text-muted);
+  border-color: var(--wt-color-surface-border);
+}
+
+.wt-button--chip[aria-pressed='true'] {
+  background: var(--wt-color-accent);
+  color: var(--wt-color-on-accent);
+  border-color: var(--wt-color-accent);
+  font-weight: 600;
+}
+
+.wt-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+/* ── Duration presets ──────────────────────────────────────────────────── */
+
+.wt-durations {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: 100%;
+}
+
+.wt-durations__legend {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.65rem;
+  padding: 0;
+  color: var(--wt-color-text-muted);
+  font-size: 0.9rem;
+}
+
+.wt-durations__options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* ── Utilities ─────────────────────────────────────────────────────────── */
+
+/* Available to screen readers, invisible on screen. */
+.wt-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────── */
+
+/*
+ * Honours the OS setting rather than an in-app toggle. The candle still burns
+ * down — it just steps instead of gliding, and the flame stops moving.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .wt-candle__flame {
+    animation: none;
+  }
+
+  .wt-candle__wax,
+  .wt-candle__flame-anchor,
+  .wt-button {
+    transition-duration: 1ms;
+  }
+}

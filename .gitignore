@@ -1,8 +1,11 @@
 # Vercel
 .vercel
 
-# Dependencies (only if a build step is ever added)
+# Dependencies — recreated by `npm install`, never committed
 node_modules/
+
+# Build output — Vercel rebuilds this from source on every deploy
+dist/
 
 # OS / editor noise
 Thumbs.db

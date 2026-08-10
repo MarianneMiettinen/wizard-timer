@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 640" width="420" height="640" role="presentation">
+  <defs>
+    <linearGradient id="robe" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4b3d8f"/>
+      <stop offset="100%" stop-color="#2a2160"/>
+    </linearGradient>
+    <linearGradient id="hat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5a4aa5"/>
+      <stop offset="100%" stop-color="#372b73"/>
+    </linearGradient>
+    <radialGradient id="orb" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#fff3cf"/>
+      <stop offset="45%" stop-color="#f0b849"/>
+      <stop offset="100%" stop-color="#f0b849" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Staff, behind the figure -->
+  <rect x="316" y="150" width="12" height="440" rx="6" fill="#6b4b2a"/>
+  <circle cx="322" cy="150" r="54" fill="url(#orb)"/>
+  <circle cx="322" cy="150" r="18" fill="#ffe9ae"/>
+
+  <!-- Robe -->
+  <path fill="url(#robe)" d="M210 214 c58 0 92 40 104 96 l38 262 c3 20 -10 34 -30 34 H100 c-20 0 -33 -14 -30 -34 l38 -262 c12 -56 46 -96 102 -96 Z"/>
+  <!-- Robe fold -->
+  <path fill="#1f1850" opacity="0.45" d="M210 236 l16 370 h-32 Z"/>
+
+  <!-- Sleeves -->
+  <path fill="#3a2f7a" d="M118 268 c-26 24 -40 64 -42 108 l34 8 c6 -44 18 -76 36 -94 Z"/>
+  <path fill="#3a2f7a" d="M302 268 c26 24 40 64 42 108 l-34 8 c-6 -44 -18 -76 -36 -94 Z"/>
+
+  <!-- Collar -->
+  <path fill="#f0b849" d="M164 218 h92 l-14 30 h-64 Z" opacity="0.85"/>
+
+  <!-- Face, kept in shadow under the brim -->
+  <ellipse cx="210" cy="182" rx="46" ry="50" fill="#e8c9a0"/>
+  <path fill="#12102c" opacity="0.35" d="M164 168 a46 50 0 0 1 92 0 Z"/>
+  <!-- Beard -->
+  <path fill="#e6e2d6" d="M172 196 c8 62 22 96 38 96 s30 -34 38 -96 c-12 12 -26 18 -38 18 s-26 -6 -38 -18 Z"/>
+  <!-- Eyes -->
+  <circle cx="192" cy="182" r="4.5" fill="#1b1636"/>
+  <circle cx="228" cy="182" r="4.5" fill="#1b1636"/>
+
+  <!-- Hat -->
+  <path fill="url(#hat)" d="M210 8 c14 0 20 12 22 26 l30 116 c-16 10 -34 15 -52 15 s-36 -5 -52 -15 l30 -116 c2 -14 8 -26 22 -26 Z"/>
+  <ellipse cx="210" cy="152" rx="102" ry="26" fill="#463891"/>
+  <ellipse cx="210" cy="146" rx="102" ry="26" fill="#5a4aa5"/>
+  <!-- Hat band + star -->
+  <path fill="#f0b849" d="M172 120 c24 8 52 8 76 0 l6 22 c-28 10 -60 10 -88 0 Z" opacity="0.9"/>
+  <path fill="#ffe9ae" d="M210 44 l6 14 l15 2 l-11 11 l3 15 l-13 -8 l-13 8 l3 -15 l-11 -11 l15 -2 Z"/>
+</svg>
