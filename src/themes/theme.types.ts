@@ -185,6 +185,8 @@ export interface ThemeSceneButtons {
   pet: ThemeSceneButton;
   start: ThemeSceneButton;
   music: ThemeSceneButton;
+  /** The ✕ painted in the corner, which pops the timer out and back. */
+  hide: ThemeSceneButton;
 }
 
 export interface ThemeScene {
@@ -280,6 +282,15 @@ export interface ThemeCopy {
    */
   startAction: string;
   pauseAction: string;
+  /** Word printed under the corner ✕. */
+  hideButton: string;
+  /** Spoken names for the ✕ in each of its two states. */
+  hideAction: string;
+  unhideAction: string;
+  /** Shown in the tab once the timer has been popped out into its own window. */
+  poppedOutHeading: string;
+  poppedOutBody: string;
+  poppedOutReturn: string;
   /** Heading of the pet chooser popover. */
   petPickerLabel: string;
   /** Accessible names for the music toggle's two states. */

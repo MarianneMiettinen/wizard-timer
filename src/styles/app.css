@@ -92,9 +92,18 @@ body {
     0 0 1.6cqw 0.15cqw var(--wt-gauge-glow),
     inset 0 0 2cqw 0.2cqw var(--wt-gauge-soft);
   pointer-events: none;
-  transition:
-    border-color 400ms linear,
-    box-shadow 400ms linear;
+  /*
+   * Deliberately NOT transitioned.
+   *
+   * These colours come from a custom property, and transitioning a property
+   * whose value is a `var()` leaves CSSTransitions stuck in `running` while
+   * `getComputedStyle` keeps reporting the *old* colour — so the frame froze on
+   * whatever colour it had when the variable last settled. Changing session
+   * length left a red frame on a full green candle.
+   *
+   * No transition is needed anyway: the gauge colour is recomputed on every
+   * tick, so it already moves in small steps.
+   */
 }
 
 /* ── Candle gauge ──────────────────────────────────────────────────────── */
@@ -366,6 +375,29 @@ body {
   letter-spacing: 0.08em;
 }
 
+/* Corner ✕: small circle, label sitting *below* it rather than inside. */
+.wt-orb--compact {
+  gap: 0;
+  border-width: 0.14cqw;
+}
+
+.wt-orb--compact .wt-orb__icon {
+  width: 52%;
+}
+
+.wt-orb--compact .wt-orb__label {
+  position: absolute;
+  top: 100%;
+  margin-top: 0.45cqw;
+  font-size: 1.15cqw;
+  letter-spacing: 0.12em;
+  color: var(--wt-color-text-muted);
+}
+
+.wt-orb--compact:hover .wt-orb__label {
+  color: var(--wt-color-accent);
+}
+
 .wt-orb--emphasis {
   box-shadow: 0 0 1.8cqw var(--wt-gauge-soft);
 }
@@ -445,6 +477,47 @@ body {
   border-radius: 50%;
   border: 0.12cqw solid var(--wt-color-surface-border);
   background-repeat: no-repeat;
+}
+
+/* ── Popped out into its own window ────────────────────────────────────── */
+
+/*
+ * The floating window is a separate document, so it gets its own copy of the
+ * theme variables (see ThemeProvider) and its own root. No session bar there —
+ * it should be the candle and nothing else.
+ */
+.wt-root--pip {
+  min-height: 100vh;
+  padding: 0;
+}
+
+.wt-root--pip .wt-scene {
+  width: min(100%, calc(100dvh * var(--wt-scene-ratio)));
+}
+
+/* Stands in for the artwork in the tab it left behind. */
+.wt-poppedout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 2rem 1.5rem;
+  border: 1px solid var(--wt-color-surface-border);
+  border-radius: 16px;
+  background: var(--wt-color-surface);
+  text-align: center;
+}
+
+.wt-poppedout__heading {
+  margin: 0;
+  font-family: var(--wt-font-display);
+  font-size: 1.25rem;
+}
+
+.wt-poppedout__body {
+  margin: 0 0 0.4rem;
+  color: var(--wt-color-text-muted);
+  font-size: 0.95rem;
 }
 
 /* ── Session bar, under the artwork ────────────────────────────────────── */

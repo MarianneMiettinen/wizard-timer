@@ -7,13 +7,23 @@
 
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { PetPicker } from './components/PetPicker';
+import { PictureInPicture, isPictureInPictureSupported } from './components/PictureInPicture';
 import { SessionBar } from './components/SessionBar';
 import { Scene } from './components/Scene';
 import { SceneButton } from './components/SceneButton';
-import { ThemeProvider, useTheme } from './components/ThemeProvider';
+import { ThemeProvider, useTheme, useThemeStyle } from './components/ThemeProvider';
 import { TimerReadout } from './components/TimerReadout';
+import { describeGauge } from './components/gauge';
+import { useFaviconWand } from './components/useFaviconWand';
 import { useSoundboard, type SoundClips } from './components/useSoundboard';
-import { CatIcon, MusicIcon, MutedMusicIcon, PauseIcon, PlayIcon } from './components/icons';
+import {
+  CatIcon,
+  CloseIcon,
+  MusicIcon,
+  MutedMusicIcon,
+  PauseIcon,
+  PlayIcon,
+} from './components/icons';
 import { useTimer } from './core/useTimer';
 
 import { wizardSchoolTheme } from './themes/wizard-school/theme.config';
@@ -35,6 +45,9 @@ const STORAGE_KEY = 'wizard-focus-timer';
 
 const MS_PER_MINUTE = 60_000;
 
+/** Width of the floating window; the height follows the artwork's aspect. */
+const POPPED_OUT_WIDTH = 460;
+
 export default function App() {
   return (
     <ThemeProvider theme={activeTheme}>
@@ -48,12 +61,14 @@ export default function App() {
  * context that it renders the provider for.
  */
 function TimerScreen() {
-  const { copy, pets, session, sounds } = useTheme();
+  const { colors, copy, pets, scene, session, sounds } = useTheme();
+  const themeStyle = useThemeStyle();
 
   const defaultPet = pets[0];
   const [petId, setPetId] = useState(defaultPet?.id ?? '');
   const [petPickerOpen, setPetPickerOpen] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
+  const [poppedOut, setPoppedOut] = useState(false);
 
   const activePet = pets.find((pet) => pet.id === petId) ?? defaultPet;
 
@@ -109,6 +124,10 @@ function TimerScreen() {
     timer.reset();
   }, [play, timer]);
 
+  const handlePipClose = useCallback(() => setPoppedOut(false), []);
+
+  const pipSupported = isPictureInPictureSupported();
+
   // Screen-reader announcement. Derived rather than stored, so it can only ever
   // describe the status the UI is actually in.
   const announcement =
@@ -120,21 +139,23 @@ function TimerScreen() {
           ? copy.announceFinished
           : copy.announceReset;
 
+  // Also feeds the tab icon, so it is computed once here rather than inside
+  // <Scene> where only the artwork could reach it.
+  const gauge = describeGauge(scene.candle, 1 - timer.elapsedFraction);
+  useFaviconWand(gauge.colour, colors.onAccent, colors.text);
+
   if (!activePet) return null;
 
-  return (
-    <main className="wt-main" onClick={handleClickSound}>
-      <h1 className="wt-visually-hidden">{copy.title}</h1>
-
-      <Scene
-        pet={activePet}
-        remainingFraction={1 - timer.elapsedFraction}
-        durationMs={timer.durationMs}
-        // Lit unless it has burned out. A candle that goes dark the moment you
-        // pause reads as "you lost it" — the artwork's whole mood is a candle
-        // quietly burning, and pausing shouldn't punish you with darkness.
-        lit={!timer.isFinished}
-      >
+  const timerScene = (
+    <Scene
+      pet={activePet}
+      gauge={gauge}
+      durationMs={timer.durationMs}
+      // Lit unless it has burned out. A candle that goes dark the moment you
+      // pause reads as "you lost it" — the artwork's whole mood is a candle
+      // quietly burning, and pausing shouldn't punish you with darkness.
+      lit={!timer.isFinished}
+    >
         <TimerReadout
           display={timer.display}
           announcement={announcement}
@@ -188,7 +209,53 @@ function TimerScreen() {
             onDismiss={dismissPetPicker}
           />
         )}
-      </Scene>
+
+      {/*
+        Hidden entirely where Document Picture-in-Picture is unavailable
+        (currently everything outside Chromium). A visible control that cannot
+        work is worse than no control.
+      */}
+      {pipSupported && (
+        <SceneButton
+          position={activePet.buttons.hide}
+          label={copy.hideButton}
+          accessibleLabel={poppedOut ? copy.unhideAction : copy.hideAction}
+          icon={<CloseIcon />}
+          onClick={() => setPoppedOut((out) => !out)}
+          pressed={poppedOut}
+          compact
+        />
+      )}
+    </Scene>
+  );
+
+  return (
+    <main className="wt-main" onClick={handleClickSound}>
+      <h1 className="wt-visually-hidden">{copy.title}</h1>
+
+      <PictureInPicture
+        open={poppedOut}
+        width={POPPED_OUT_WIDTH}
+        height={Math.round(POPPED_OUT_WIDTH / (scene.aspectWidth / scene.aspectHeight))}
+        onClose={handlePipClose}
+        rootStyle={themeStyle}
+      >
+        {timerScene}
+      </PictureInPicture>
+
+      {poppedOut && (
+        <div className="wt-poppedout">
+          <p className="wt-poppedout__heading">{copy.poppedOutHeading}</p>
+          <p className="wt-poppedout__body">{copy.poppedOutBody}</p>
+          <button
+            type="button"
+            className="wt-chip"
+            onClick={() => setPoppedOut(false)}
+          >
+            {copy.poppedOutReturn}
+          </button>
+        </div>
+      )}
 
       <SessionBar
         durationMs={timer.durationMs}

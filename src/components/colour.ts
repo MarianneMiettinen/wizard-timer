@@ -75,6 +75,20 @@ export function sampleGradient(stops: readonly string[], t: number): string {
   });
 }
 
+/**
+ * Snaps a colour to a coarser grid.
+ *
+ * Used to decide when a colour has changed *enough* to be worth acting on. The
+ * gauge colour drifts on every tick, so anything driven by it — repainting a
+ * favicon, say — would otherwise redo its work several times a second for a
+ * change nobody can see.
+ */
+export function quantise(colour: string, step = 8): string {
+  const { r, g, b } = parseHex(colour);
+  const snap = (value: number) => Math.round(value / step) * step;
+  return toHex({ r: snap(r), g: snap(g), b: snap(b) });
+}
+
 /** Same colour at a given opacity, as an `rgba()` string. */
 export function withAlpha(colour: string, alpha: number): string {
   const { r, g, b } = parseHex(colour);

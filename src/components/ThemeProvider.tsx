@@ -15,6 +15,18 @@ import { createContext, useContext, useMemo, type CSSProperties, type ReactNode 
 import type { Theme } from '../themes/theme.types';
 
 const ThemeContext = createContext<Theme | null>(null);
+const ThemeStyleContext = createContext<CSSProperties>({});
+
+/**
+ * The theme's CSS custom properties as a style object.
+ *
+ * Needed because a popped-out Picture-in-Picture window is a separate document:
+ * the variables set on `.wt-root` here do not reach it, so the portalled tree
+ * has to carry its own copy.
+ */
+export function useThemeStyle(): CSSProperties {
+  return useContext(ThemeStyleContext);
+}
 
 export function useTheme(): Theme {
   const theme = useContext(ThemeContext);
@@ -61,9 +73,11 @@ export function ThemeProvider({ theme, children }: ThemeProviderProps) {
 
   return (
     <ThemeContext.Provider value={theme}>
-      <div className="wt-root" style={style} data-theme={theme.id}>
-        {children}
-      </div>
+      <ThemeStyleContext.Provider value={style}>
+        <div className="wt-root" style={style} data-theme={theme.id}>
+          {children}
+        </div>
+      </ThemeStyleContext.Provider>
     </ThemeContext.Provider>
   );
 }

@@ -13,24 +13,22 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { ThemePet } from '../themes/theme.types';
 import { CandleGauge } from './CandleGauge';
-import { describeGauge } from './gauge';
+import type { GaugeState } from './gauge';
 import { withAlpha } from './colour';
 import { useTheme } from './ThemeProvider';
 
 interface SceneProps {
   /** The chosen pet — carries both the artwork and its measured geometry. */
   pet: ThemePet;
-  /** 1 at the start of a session, 0 when it is over. */
-  remainingFraction: number;
+  /** Computed by the caller, which also needs the colour for the tab icon. */
+  gauge: GaugeState;
   durationMs: number;
   lit: boolean;
   children: ReactNode;
 }
 
-export function Scene({ pet, remainingFraction, durationMs, lit, children }: SceneProps) {
+export function Scene({ pet, gauge, durationMs, lit, children }: SceneProps) {
   const { scene, copy } = useTheme();
-
-  const gauge = describeGauge(scene.candle, remainingFraction);
 
   const style = {
     '--wt-gauge-colour': gauge.colour,

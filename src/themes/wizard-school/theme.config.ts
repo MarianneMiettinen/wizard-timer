@@ -124,6 +124,7 @@ export const wizardSchoolTheme: Theme = {
         pet: { xPercent: 35.5, yPercent: 84.2, radiusPercent: 5.6 },
         start: { xPercent: 50.1, yPercent: 83.7, radiusPercent: 6.7 },
         music: { xPercent: 64.6, yPercent: 84.7, radiusPercent: 5.5 },
+        hide: { xPercent: 91.4, yPercent: 8.9, radiusPercent: 2.4 },
       },
       // Quiet source (peaks at 0.10), so it needs lifting well past 1 to sit
       // alongside the owl. Trimmed — 5.5s of meow outlasts the moment.
@@ -149,6 +150,7 @@ export const wizardSchoolTheme: Theme = {
         pet: { xPercent: 36.16, yPercent: 84.36, radiusPercent: 6.35 },
         start: { xPercent: 50.71, yPercent: 83.69, radiusPercent: 7.28 },
         music: { xPercent: 65.94, yPercent: 84.36, radiusPercent: 6.03 },
+        hide: { xPercent: 92.1, yPercent: 8.4, radiusPercent: 2.3 },
       },
       // Much hotter source than the cat — turned down, not up.
       sound: { src: owlSound, gain: 0.32, maxSeconds: 3 },
@@ -199,6 +201,12 @@ export const wizardSchoolTheme: Theme = {
     musicButton: 'MUSIC',
     startAction: 'Start the candle burning',
     pauseAction: 'Pause the candle',
+    hideButton: 'hide',
+    hideAction: 'Hide this page and keep the candle floating on top',
+    unhideAction: 'Hide the floating candle and bring it back here',
+    poppedOutHeading: 'The candle is floating on top.',
+    poppedOutBody: 'It keeps burning while you work elsewhere.',
+    poppedOutReturn: 'Bring it back here',
     petPickerLabel: 'Choose your familiar',
     soundOn: 'Sound on',
     soundOff: 'Sound off',

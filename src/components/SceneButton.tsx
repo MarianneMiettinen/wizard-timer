@@ -24,6 +24,8 @@ interface SceneButtonProps {
   onClick(): void;
   /** The larger, brighter treatment. The artwork gives START this weight. */
   emphasis?: boolean;
+  /** Small corner treatment: the label sits *below* the circle, not inside it. */
+  compact?: boolean;
   expanded?: boolean;
   pressed?: boolean;
 }
@@ -35,13 +37,18 @@ export function SceneButton({
   icon,
   onClick,
   emphasis = false,
+  compact = false,
   expanded,
   pressed,
 }: SceneButtonProps) {
+  const className = ['wt-orb', emphasis && 'wt-orb--emphasis', compact && 'wt-orb--compact']
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <button
       type="button"
-      className={emphasis ? 'wt-orb wt-orb--emphasis' : 'wt-orb'}
+      className={className}
       style={{
         left: `${position.xPercent}%`,
         top: `${position.yPercent}%`,

@@ -46,6 +46,19 @@ export function CatIcon() {
   );
 }
 
+export function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none">
+      <path
+        d="M6.4 6.4 L17.6 17.6 M17.6 6.4 L6.4 17.6"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function MusicIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
