@@ -7,6 +7,7 @@
 
 import { useTheme, ThemeProvider } from './components/ThemeProvider';
 import { Controls } from './components/Controls';
+import { CustomDuration } from './components/CustomDuration';
 import { DurationPicker } from './components/DurationPicker';
 import { Stage } from './components/Stage';
 import { TimerDisplay } from './components/TimerDisplay';
@@ -84,6 +85,8 @@ function TimerScreen() {
       <Controls status={timer.status} onToggle={timer.toggle} onReset={timer.reset} />
 
       <DurationPicker durationMs={timer.durationMs} onSelect={timer.setDurationMs} />
+
+      <CustomDuration durationMs={timer.durationMs} onSelect={timer.setDurationMs} />
     </main>
   );
 }

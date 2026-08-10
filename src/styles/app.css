@@ -231,9 +231,29 @@ body {
 }
 
 .wt-button--primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   background: var(--wt-color-accent);
   color: var(--wt-color-on-accent);
   font-weight: 600;
+}
+
+/* Sized in em so the glyph tracks the button's text, and filled with
+   currentColor so it takes the theme's colour without knowing what it is. */
+.wt-button__icon {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+}
+
+.wt-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wt-button:disabled:hover {
+  filter: none;
 }
 
 .wt-button--quiet {
@@ -287,6 +307,65 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.5rem;
+}
+
+/* ── Typed duration ────────────────────────────────────────────────────── */
+
+.wt-custom {
+  width: 100%;
+}
+
+.wt-custom__group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.wt-custom__legend {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.65rem;
+  padding: 0;
+  color: var(--wt-color-text-muted);
+  font-size: 0.9rem;
+}
+
+.wt-custom__fields {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.wt-custom__field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+
+.wt-custom__label {
+  color: var(--wt-color-text-muted);
+  font-size: 0.8rem;
+}
+
+.wt-input {
+  width: 6rem;
+  min-height: 44px;
+  padding: 0.5rem 0.7rem;
+  border-radius: 12px;
+  border: 1px solid var(--wt-color-surface-border);
+  background: var(--wt-color-surface);
+  color: var(--wt-color-text);
+  font-family: var(--wt-font-body);
+  font-size: 1rem;
+  text-align: center;
+}
+
+.wt-input:focus-visible {
+  outline: 3px solid var(--wt-color-focus-ring);
+  outline-offset: 2px;
 }
 
 /* ── Utilities ─────────────────────────────────────────────────────────── */

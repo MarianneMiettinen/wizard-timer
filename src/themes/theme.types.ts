@@ -97,6 +97,12 @@ export interface ThemeSession {
   presetMinutes: number[];
   /** Pre-selected on a genuine first visit. Should be one of `presetMinutes`. */
   defaultMinutes: number;
+  /**
+   * Ceiling for the typed hours/minutes entry, in minutes. Anything longer is
+   * clamped to this rather than rejected — a silent cap beats an error message
+   * for something nobody does on purpose.
+   */
+  maxMinutes: number;
 }
 
 /**
@@ -116,6 +122,12 @@ export interface ThemeCopy {
   durationLegend: string;
   /** Appended to each preset number, e.g. "min". */
   minuteSuffix: string;
+  /** Label above the typed hours/minutes entry. */
+  customLegend: string;
+  hoursLabel: string;
+  minutesLabel: string;
+  /** Button that applies the typed duration. */
+  applyDuration: string;
   start: string;
   resume: string;
   pause: string;

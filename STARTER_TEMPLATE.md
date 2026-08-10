@@ -155,7 +155,7 @@ grep -rEn "#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(" src --exclude-dir=themes
 ```
 
 ```bash
-grep -rEn "import .*(themes|theme\.config)" src/core
+grep -rEn "^\s*import .*(themes|theme\.config)" src/core
 ```
 
 A hit in the first means a colour escaped into `/core`, `/components` or the

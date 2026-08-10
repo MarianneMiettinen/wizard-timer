@@ -9,6 +9,7 @@ own folder and its own copies — nothing in here is shared.
 | `wizard.svg` | `assets.character` — the figure beside the candle |
 | `candle-wax.svg` | `assets.candleWax` — clipped from the top as the session burns down |
 | `candle-flame.svg` | `assets.candleFlame` — sits on top of whatever wax is left |
+| `spell-complete.wav` | `sounds.complete` — plays once when the session ends |
 
 These are hand-written SVGs, so they scale to any screen, weigh a few KB, and
 have no licence attached. Replace them with your own art freely — PNG, JPG and
@@ -24,22 +25,37 @@ If you want an asset to follow `theme.colors` instead of carrying its own, it
 has to be inlined as JSX rather than loaded through `<img>`; `<img>` can't
 inherit `currentColor`. Not worth it for these four.
 
-## Adding the completion sound
+## The completion sound
 
-The theme currently ships with `sounds.complete: null`, which means the session
-ends silently. To add one:
+`spell-complete.wav` is a 2.8s rising bell arpeggio (A major) with a sparkle
+tail — soft attack, long decay, no sharp transient. It fires when someone may
+have forgotten the timer was running, so it has to read as "that's done" rather
+than as an alarm.
 
-1. Put an audio file in this folder, e.g. `chime.mp3`. Keep it short (1–2s),
-   quiet, and non-startling — it fires when someone may have forgotten the timer
-   was running.
-2. In `../theme.config.ts`, add the import next to the image imports:
+It is **generated, not recorded**, by `/tools/generate-chime.mjs`. No licence, no
+attribution, no third-party request, and it can be retuned rather than replaced:
+
+```bash
+node tools/generate-chime.mjs src/themes/wizard-school/assets/spell-complete.wav
+```
+
+The frequencies, arpeggio timing, decay length and sparkle density are all
+constants at the top of that script. Output is deterministic — the same script
+always produces a byte-identical file.
+
+### Using a different sound instead
+
+1. Put an audio file in this folder, e.g. `chime.mp3`. Short, quiet,
+   non-startling.
+2. In `../theme.config.ts`, change the import:
    ```ts
    import completeSound from './assets/chime.mp3';
    ```
-3. Set `sounds.complete: completeSound`.
 
-Nothing else changes. The player already handles a missing or blocked file by
-staying silent — a browser that refuses to autoplay must never break the timer.
+Setting `sounds.complete: null` is also valid and means the session ends in
+silence. Nothing else changes either way — the player treats a missing file, a
+muted device and a browser that blocks autoplay all the same way: no sound, timer
+unaffected.
 
 ## Swapping the candle art
 

@@ -22,6 +22,7 @@ import backgroundImage from './assets/background.svg';
 import characterImage from './assets/wizard.svg';
 import candleWaxImage from './assets/candle-wax.svg';
 import candleFlameImage from './assets/candle-flame.svg';
+import completeSound from './assets/spell-complete.wav';
 
 export const wizardSchoolTheme: Theme = {
   id: 'wizard-school',
@@ -55,10 +56,10 @@ export const wizardSchoolTheme: Theme = {
   },
 
   sounds: {
-    // No sound file ships with this theme yet. See ./assets/README.md — drop an
-    // audio file in, import it, and put the imported value here. Silence is a
-    // supported state, not a broken one.
-    complete: null,
+    // Rising bell arpeggio with a sparkle tail. Deliberately soft-edged: it
+    // fires when someone may have forgotten the timer was running, so it has to
+    // read as "that's done", not as an alarm.
+    complete: completeSound,
     completeVolume: 0.5,
   },
 
@@ -78,6 +79,7 @@ export const wizardSchoolTheme: Theme = {
   session: {
     presetMinutes: [5, 15, 25, 45],
     defaultMinutes: 25,
+    maxMinutes: 12 * 60,
   },
 
   copy: {
@@ -86,6 +88,10 @@ export const wizardSchoolTheme: Theme = {
     characterAlt: 'A wizard in a star-banded hat, holding a glowing staff',
     durationLegend: 'How long?',
     minuteSuffix: 'min',
+    customLegend: 'Or set your own',
+    hoursLabel: 'Hours',
+    minutesLabel: 'Minutes',
+    applyDuration: 'Set',
     start: 'Light the candle',
     resume: 'Light it again',
     pause: 'Pause',
