@@ -28,6 +28,7 @@ import clickSound from './assets/sounds/matthewvakaliuk73627-mouse-click.mp3';
 import startSound from './assets/sounds/daviddumais-magical-spell-cast.mp3';
 import pauseSound from './assets/sounds/freesound-clockwork-timer.mp3';
 import resetSound from './assets/sounds/biww-fire-burst-flame-sound-effect.mp3';
+import scrollSound from './assets/sounds/freesound_community-magical-hit.mp3';
 import catSound from './assets/sounds/cat.mp3';
 import owlSound from './assets/sounds/lazychillzone-owl-hooting.mp3';
 
@@ -46,6 +47,10 @@ export const wizardSchoolTheme: Theme = {
     accent: '#e3b45c',
     onAccent: '#1a1206',
     focusRing: '#8fd3ff',
+    // Aged paper. Measured: ink on parchment is 9.7:1.
+    parchment: '#e8d7ac',
+    parchmentEdge: '#b99e6f',
+    parchmentInk: '#3a2a12',
     // Sampled from the wall beside the printed candle, which reads [6,2,0] to
     // [16,8,1]. Near-black, which is why erasing the candle is invisible.
     sceneMask: '#050301',
@@ -183,6 +188,8 @@ export const wizardSchoolTheme: Theme = {
         leftPercent: 68.5,
         topPercent: 55,
         widthPercent: 17,
+        // Cyan, matching the swirl the toad already sits in on the sheet.
+        aura: { colour: 'rgba(95, 216, 208, 0.3)', scale: 2.3 },
       },
       // Covers the painted cat and its purple aura (x≈940–1230, y≈480–870),
       // with room to spare for the mask's soft edge.
@@ -225,9 +232,10 @@ export const wizardSchoolTheme: Theme = {
         leftPercent: 67,
         topPercent: 56.3,
         widthPercent: 20,
-        // Trimmed slightly: the source is brighter than anything else in this
-        // candlelit room, and full strength makes it look pasted on.
-        opacity: 0.94,
+        // Trimmed: the source is brighter than anything else in this candlelit
+        // room, and full strength makes it look pasted on.
+        opacity: 0.88,
+        aura: { colour: 'rgba(242, 168, 189, 0.28)', scale: 2.1 },
       },
       erase: [
         { leftPercent: 64.9, topPercent: 35.7, widthPercent: 26.4, heightPercent: 48.1 },
@@ -273,6 +281,7 @@ export const wizardSchoolTheme: Theme = {
     // fires when someone may have forgotten the timer was running, so it has to
     // read as "that's done", not as an alarm.
     complete: { src: completeSound, gain: 0.45 },
+    scroll: { src: scrollSound, gain: 0.5, maxSeconds: 1.6 },
   },
 
   session: {
@@ -304,6 +313,12 @@ export const wizardSchoolTheme: Theme = {
     poppedOutBody: 'It keeps burning while you work elsewhere.',
     poppedOutReturn: 'Bring it back here',
     tabTitleSuffix: '· Wizard Focus',
+    scrollButton: 'Keep it close',
+    scrollHeading: 'Keep this candle within reach',
+    scrollBookmark: 'Bookmark it — press Ctrl + D, or ⌘ + D on a Mac.',
+    scrollPin:
+      'Pin it to your taskbar — open the browser menu (⋮) and look for "Install page as app", or "Create shortcut" in older versions.',
+    scrollWhy: 'A timer you can find in one click is a timer you actually use.',
     petPickerLabel: 'Choose your familiar',
     soundOn: 'Sound on',
     soundOff: 'Sound off',

@@ -8,6 +8,7 @@
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { PetPicker } from './components/PetPicker';
 import { PictureInPicture, isPictureInPictureSupported } from './components/PictureInPicture';
+import { ScrollNote } from './components/ScrollNote';
 import { SessionBar } from './components/SessionBar';
 import { Scene } from './components/Scene';
 import { SceneButton } from './components/SceneButton';
@@ -82,6 +83,7 @@ function TimerScreen() {
   const clips = useMemo<SoundClips>(() => {
     const map: SoundClips = {
       click: sounds.click,
+      scroll: sounds.scroll,
       start: sounds.start,
       pause: sounds.pause,
       reset: sounds.reset,
@@ -270,6 +272,8 @@ function TimerScreen() {
         onReset={handleReset}
         highlightReset={timer.isFinished}
       />
+
+      <ScrollNote onOpen={() => play('scroll')} />
     </main>
   );
 }

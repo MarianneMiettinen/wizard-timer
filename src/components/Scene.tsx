@@ -13,6 +13,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { ThemePet, ThemePetOverlay } from '../themes/theme.types';
 import { CandleGauge } from './CandleGauge';
+import { Sparkles } from './Sparkles';
 import { gaugeCssVariables, type GaugeState } from './gauge';
 import { useTheme } from './ThemeProvider';
 
@@ -35,11 +36,30 @@ function PetOverlay({ overlay }: { overlay: ThemePetOverlay }) {
   const positionAxis = (start: number, size: number) =>
     size >= 100 ? 0 : (start / (100 - size)) * 100;
 
+  const aura = overlay.aura;
+
   return (
-    <div
-      className="wt-scene__pet"
-      aria-hidden="true"
-      style={{
+    <>
+      {aura && (
+        <div
+          className="wt-scene__pet-aura"
+          aria-hidden="true"
+          style={{
+            // Centred on the sprite and grown outwards from it.
+            left: `${overlay.leftPercent + overlay.widthPercent / 2}%`,
+            top: `${overlay.topPercent + overlay.widthPercent / overlay.cropAspect / 2}%`,
+            width: `${overlay.widthPercent * aura.scale}%`,
+            aspectRatio: '1',
+            transform: 'translate(-50%, -50%)',
+            background: `radial-gradient(circle, ${aura.colour} 0%, transparent 68%)`,
+          }}
+        />
+      )}
+
+      <div
+        className="wt-scene__pet"
+        aria-hidden="true"
+        style={{
         left: `${overlay.leftPercent}%`,
         top: `${overlay.topPercent}%`,
         width: `${overlay.widthPercent}%`,
@@ -49,12 +69,28 @@ function PetOverlay({ overlay }: { overlay: ThemePetOverlay }) {
         backgroundSize: `${(100 / overlay.cropWidthPercent) * 100}% ${
           (100 / overlay.cropHeightPercent) * 100
         }%`,
-        backgroundPosition: `${positionAxis(
-          overlay.cropLeftPercent,
-          overlay.cropWidthPercent,
-        )}% ${positionAxis(overlay.cropTopPercent, overlay.cropHeightPercent)}%`,
-      }}
-    />
+          backgroundPosition: `${positionAxis(
+            overlay.cropLeftPercent,
+            overlay.cropWidthPercent,
+          )}% ${positionAxis(overlay.cropTopPercent, overlay.cropHeightPercent)}%`,
+        }}
+      />
+
+      {/* Scattered over the pet's own area, in its own colour. */}
+      {aura && (
+        <div
+          className="wt-scene__pet-sparkles"
+          style={{
+            left: `${overlay.leftPercent - overlay.widthPercent * 0.15}%`,
+            top: `${overlay.topPercent - overlay.widthPercent * 0.1}%`,
+            width: `${overlay.widthPercent * 1.3}%`,
+            aspectRatio: String(overlay.cropAspect),
+          }}
+        >
+          <Sparkles colour={aura.colour} />
+        </div>
+      )}
+    </>
   );
 }
 

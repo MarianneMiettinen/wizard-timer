@@ -51,6 +51,9 @@ function toCssVariables(theme: Theme): CSSProperties {
     '--wt-color-on-accent': colors.onAccent,
     '--wt-color-focus-ring': colors.focusRing,
     '--wt-color-scene-mask': colors.sceneMask,
+    '--wt-color-parchment': colors.parchment,
+    '--wt-color-parchment-edge': colors.parchmentEdge,
+    '--wt-color-parchment-ink': colors.parchmentInk,
 
     '--wt-font-display': fonts.display,
     '--wt-font-body': fonts.body,

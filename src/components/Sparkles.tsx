@@ -21,9 +21,14 @@ const SPARKS = [
   { left: 16, top: 101, size: 1.4, delay: 1.9 },
 ];
 
-export function Sparkles() {
+interface SparklesProps {
+  /** Overrides the default accent, so a pet can sparkle in its own colour. */
+  colour?: string;
+}
+
+export function Sparkles({ colour }: SparklesProps) {
   return (
-    <div className="wt-sparkles" aria-hidden="true">
+    <div className="wt-sparkles" aria-hidden="true" style={colour ? { color: colour } : undefined}>
       {SPARKS.map((spark) => (
         <svg
           key={`${spark.left}-${spark.top}`}

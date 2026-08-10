@@ -33,6 +33,10 @@ export interface ThemeColors {
   onAccent: string;
   /** Keyboard focus ring. Pick something that stands out against everything else. */
   focusRing: string;
+  /** The note's parchment, and the ink written on it. Must clear 4.5:1. */
+  parchment: string;
+  parchmentEdge: string;
+  parchmentInk: string;
   /**
    * Paints over the part of the printed candle that has already burned away.
    * Must match the artwork's wall behind the candle, or the erased strip shows
@@ -174,6 +178,13 @@ export interface ThemePetOverlay {
   widthPercent: number;
   /** Fine brightness trim, so a pet doesn't glow brighter than the painting. */
   opacity?: number;
+  /**
+   * Pool of light the pet sits in, in its own colour — the cat's purple, the
+   * toad's cyan. Without it a composited pet reads as pasted on: it is the only
+   * thing in the room with no reason to be lit, and its edges meet the backdrop
+   * at a line. `scale` is a multiple of the sprite's width.
+   */
+  aura?: { colour: string; scale: number };
 }
 
 export interface ThemePet {
@@ -283,6 +294,8 @@ export interface ThemeSounds {
   reset: ThemeSoundClip | null;
   /** Played once when the session ends. */
   complete: ThemeSoundClip | null;
+  /** Unrolling the note. */
+  scroll: ThemeSoundClip | null;
 }
 
 export interface ThemeSession {
@@ -340,6 +353,12 @@ export interface ThemeCopy {
    * Kept short — a tab strip gives you very few characters.
    */
   tabTitleSuffix: string;
+  /** The rolled-up note that explains how to keep the timer to hand. */
+  scrollButton: string;
+  scrollHeading: string;
+  scrollBookmark: string;
+  scrollPin: string;
+  scrollWhy: string;
   /** Heading of the pet chooser popover. */
   petPickerLabel: string;
   /** Accessible names for the music toggle's two states. */

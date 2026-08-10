@@ -80,18 +80,52 @@ body {
 }
 
 /*
- * Hiding a painted *pet* is a bigger job than hiding a small arrow: it has
- * bright eyes and a glowing aura, and any of it surviving means two animals on
- * screen at once. So the opaque core reaches much further out before the edge
- * begins to feather.
+ * Hides the painted pet by *blurring and dimming the room*, not by painting
+ * over it.
+ *
+ * Filling the area with near-black did hide the cat, but it left the new pet
+ * sitting in a black hole with the room only resuming beyond its edge. Blurring
+ * the backdrop instead keeps the room's own colours, brightness and rough
+ * texture, so what remains reads as an out-of-focus dark corner — the shelves
+ * carry on right up to the animal.
+ *
+ * The radial mask is what removes the boundary: the blur fades out with it, so
+ * there is no edge anywhere for the eye to catch.
  */
 .wt-scene__erase--strong {
-  background: radial-gradient(
-    ellipse at 50% 50%,
-    var(--wt-color-scene-mask) 0%,
-    var(--wt-color-scene-mask) 82%,
-    transparent 100%
-  );
+  background: none;
+  /*
+   * Blur does the hiding; the dimming is deliberately mild. A blur preserves
+   * the region's *mean* brightness while destroying its detail, so the patch
+   * still matches the room around it — dimming hard (0.34) measured at
+   * luminance ~5 against surroundings of 12–15, which is exactly the black
+   * hole this replaced.
+   */
+  backdrop-filter: blur(2.2cqw) brightness(0.72) saturate(0.7);
+  -webkit-backdrop-filter: blur(2.2cqw) brightness(0.72) saturate(0.7);
+  /* `currentColor` rather than a literal: a mask reads only alpha, so the hue
+     is irrelevant and a hex here would be a theme value that isn't one. */
+  mask-image: radial-gradient(ellipse at 50% 50%, currentColor 42%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, currentColor 42%, transparent 100%);
+}
+
+/*
+ * A pool of light under a composited pet, in its own colour.
+ *
+ * This is what actually sells the pet as *being there* rather than pasted on:
+ * it gives the animal a reason to be lit, and it fills the gap between the
+ * blurred backdrop and the sprite's edges so the two never meet at a line.
+ */
+.wt-scene__pet-aura {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.wt-scene__pet-sparkles {
+  position: absolute;
+  pointer-events: none;
 }
 
 /*
@@ -676,6 +710,115 @@ body {
   }
 }
 
+/* ── The rolled note ───────────────────────────────────────────────────── */
+
+.wt-scroll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: min(100%, calc((100dvh - 7rem) * var(--wt-scene-ratio)));
+}
+
+.wt-scroll__handle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--wt-color-surface-border);
+  border-radius: 999px;
+  background: none;
+  color: var(--wt-color-text-muted);
+  font-family: var(--wt-font-display);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.wt-scroll__handle:hover {
+  color: var(--wt-color-accent);
+  border-color: var(--wt-color-accent);
+}
+
+.wt-scroll__handle:focus-visible {
+  outline: 3px solid var(--wt-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.wt-scroll__icon {
+  display: block;
+  width: 1.15rem;
+  line-height: 0;
+  color: var(--wt-color-accent);
+}
+
+.wt-scroll__icon > svg {
+  width: 100%;
+  height: auto;
+}
+
+/*
+ * Parchment. The uneven corner radii and the darker wash at top and bottom are
+ * doing the work of a torn, curling sheet without needing a texture image.
+ */
+.wt-scroll__sheet {
+  max-width: 34rem;
+  padding: 1.1rem 1.5rem 1.2rem;
+  border: 1px solid var(--wt-color-parchment-edge);
+  border-radius: 4px 12px 6px 14px / 14px 6px 12px 4px;
+  background:
+    linear-gradient(
+      to bottom,
+      var(--wt-color-parchment-edge) 0%,
+      var(--wt-color-parchment) 5%,
+      var(--wt-color-parchment) 95%,
+      var(--wt-color-parchment-edge) 100%
+    );
+  color: var(--wt-color-parchment-ink);
+  text-align: left;
+  transform-origin: top center;
+  animation: wt-unroll 340ms ease-out;
+}
+
+@keyframes wt-unroll {
+  from {
+    transform: scaleY(0.02);
+    opacity: 0.2;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.wt-scroll__heading {
+  margin: 0 0 0.6rem;
+  font-family: var(--wt-font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.wt-scroll__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.wt-scroll__why {
+  margin: 0.7rem 0 0;
+  font-size: 0.86rem;
+  font-style: italic;
+  opacity: 0.8;
+}
+
 /* ── Utilities ─────────────────────────────────────────────────────────── */
 
 /* Available to screen readers, invisible on screen. */
@@ -700,6 +843,11 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .wt-gauge__flame-svg,
   .wt-chip--glow {
+    animation: none;
+  }
+
+  /* The note still opens — it just appears instead of unrolling. */
+  .wt-scroll__sheet {
     animation: none;
   }
 
