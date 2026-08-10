@@ -26,6 +26,8 @@ interface SceneButtonProps {
   emphasis?: boolean;
   /** Small corner treatment: the label sits *below* the circle, not inside it. */
   compact?: boolean;
+  /** Visibly "off" — for a toggle whose off state must not look like a fault. */
+  dimmed?: boolean;
   expanded?: boolean;
   pressed?: boolean;
 }
@@ -38,10 +40,16 @@ export function SceneButton({
   onClick,
   emphasis = false,
   compact = false,
+  dimmed = false,
   expanded,
   pressed,
 }: SceneButtonProps) {
-  const className = ['wt-orb', emphasis && 'wt-orb--emphasis', compact && 'wt-orb--compact']
+  const className = [
+    'wt-orb',
+    emphasis && 'wt-orb--emphasis',
+    compact && 'wt-orb--compact',
+    dimmed && 'wt-orb--dimmed',
+  ]
     .filter(Boolean)
     .join(' ');
 

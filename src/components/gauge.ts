@@ -9,8 +9,9 @@
  * bottom, so "how red is it" always means "how close am I to done".
  */
 
+import type { CSSProperties } from 'react';
 import type { ThemeCandleGauge } from '../themes/theme.types';
-import { sampleGradient } from './colour';
+import { sampleGradient, withAlpha } from './colour';
 
 export interface GaugeState {
   /** Y of the candle's burning tip, as a percentage of the artwork height. */
@@ -32,6 +33,26 @@ export function describeGauge(
     // with the fraction inverted.
     colour: sampleGradient(candle.gradient, 1 - left),
   };
+}
+
+/**
+ * The gauge colour as CSS custom properties.
+ *
+ * Applied in two places on purpose: on the page wrapper, so anything outside
+ * the artwork (the session bar's glowing reset button) can read them; and again
+ * on the scene itself, because a popped-out Picture-in-Picture window is a
+ * separate document that the page wrapper is not an ancestor of.
+ *
+ * Scoping these to the scene alone silently breaks the outside users — an
+ * undefined custom property makes the whole declaration invalid, so the glow
+ * simply computes to `none` with no error anywhere.
+ */
+export function gaugeCssVariables(gauge: GaugeState): CSSProperties {
+  return {
+    '--wt-gauge-colour': gauge.colour,
+    '--wt-gauge-glow': withAlpha(gauge.colour, 0.5),
+    '--wt-gauge-soft': withAlpha(gauge.colour, 0.18),
+  } as CSSProperties;
 }
 
 /** Y of a tick marking `fraction` of the session, as a percentage of height. */

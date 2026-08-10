@@ -11,10 +11,12 @@ import { PictureInPicture, isPictureInPictureSupported } from './components/Pict
 import { SessionBar } from './components/SessionBar';
 import { Scene } from './components/Scene';
 import { SceneButton } from './components/SceneButton';
+import { Sparkles } from './components/Sparkles';
 import { ThemeProvider, useTheme, useThemeStyle } from './components/ThemeProvider';
 import { TimerReadout } from './components/TimerReadout';
-import { describeGauge } from './components/gauge';
+import { describeGauge, gaugeCssVariables } from './components/gauge';
 import { useFaviconWand } from './components/useFaviconWand';
+import { useTabTitle } from './components/useTabTitle';
 import { useSoundboard, type SoundClips } from './components/useSoundboard';
 import {
   CatIcon,
@@ -143,6 +145,7 @@ function TimerScreen() {
   // <Scene> where only the artwork could reach it.
   const gauge = describeGauge(scene.candle, 1 - timer.elapsedFraction);
   useFaviconWand(gauge.colour, colors.onAccent, colors.text);
+  useTabTitle(`${timer.display} ${copy.tabTitleSuffix}`);
 
   if (!activePet) return null;
 
@@ -165,6 +168,7 @@ function TimerScreen() {
 
         {timer.isFinished && (
           <div className="wt-finished">
+            <Sparkles />
             <p className="wt-finished__heading">{copy.finishedHeading}</p>
             <p className="wt-finished__body">{copy.finishedBody}</p>
           </div>
@@ -195,6 +199,9 @@ function TimerScreen() {
           icon={soundOn ? <MusicIcon /> : <MutedMusicIcon />}
           onClick={() => setSoundOn((on) => !on)}
           pressed={soundOn}
+          // This button silences *everything*, not just the end chime. Without
+          // an unmistakable off state it reads as "the sounds broke".
+          dimmed={!soundOn}
         />
 
         {petPickerOpen && (
@@ -230,7 +237,7 @@ function TimerScreen() {
   );
 
   return (
-    <main className="wt-main" onClick={handleClickSound}>
+    <main className="wt-main" style={gaugeCssVariables(gauge)} onClick={handleClickSound}>
       <h1 className="wt-visually-hidden">{copy.title}</h1>
 
       <PictureInPicture
@@ -261,6 +268,7 @@ function TimerScreen() {
         durationMs={timer.durationMs}
         onSelect={timer.setDurationMs}
         onReset={handleReset}
+        highlightReset={timer.isFinished}
       />
     </main>
   );

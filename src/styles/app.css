@@ -308,6 +308,37 @@ body {
   text-align: center;
 }
 
+/* ── Sparkles on the finished panel ────────────────────────────────────── */
+
+.wt-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--wt-color-accent);
+}
+
+.wt-sparkles__spark {
+  position: absolute;
+  height: auto;
+  opacity: 0;
+  transform: scale(0.4);
+  animation: wt-twinkle 4.2s ease-in-out infinite;
+}
+
+/* Slow, low, and never fully opaque — a shimmer, not a firework. */
+@keyframes wt-twinkle {
+  0%,
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4) rotate(0deg);
+  }
+  35% {
+    opacity: 0.85;
+    transform: scale(1) rotate(35deg);
+  }
+}
+
 .wt-finished__heading {
   margin: 0 0 0.3cqw;
   font-family: var(--wt-font-display);
@@ -396,6 +427,16 @@ body {
 
 .wt-orb--compact:hover .wt-orb__label {
   color: var(--wt-color-accent);
+}
+
+/*
+ * A toggle in its off state. Distinct from :disabled — the button still works,
+ * it is the *sound* that is off, and that has to be readable at a glance or it
+ * looks like the app broke.
+ */
+.wt-orb--dimmed {
+  opacity: 0.5;
+  border-style: dashed;
 }
 
 .wt-orb--emphasis {
@@ -580,6 +621,30 @@ body {
   background: none;
 }
 
+/* Marks the obvious next step once the session has ended. */
+.wt-chip--glow {
+  border-color: var(--wt-gauge-colour);
+  color: var(--wt-color-text);
+  box-shadow:
+    0 0 14px var(--wt-gauge-glow),
+    inset 0 0 10px var(--wt-gauge-soft);
+  animation: wt-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes wt-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px var(--wt-gauge-soft),
+      inset 0 0 8px var(--wt-gauge-soft);
+  }
+  50% {
+    box-shadow:
+      0 0 20px var(--wt-gauge-glow),
+      inset 0 0 12px var(--wt-gauge-soft);
+  }
+}
+
 /* ── Utilities ─────────────────────────────────────────────────────────── */
 
 /* Available to screen readers, invisible on screen. */
@@ -602,8 +667,14 @@ body {
  * down — it just steps instead of gliding, and the flame stops moving.
  */
 @media (prefers-reduced-motion: reduce) {
-  .wt-gauge__flame-svg {
+  .wt-gauge__flame-svg,
+  .wt-chip--glow {
     animation: none;
+  }
+
+  /* Sparkles are pure decoration, so they go entirely rather than sit frozen. */
+  .wt-sparkles {
+    display: none;
   }
 
   .wt-gauge__mask,

@@ -27,6 +27,8 @@ export type SoundClips = Record<string, ThemeSoundClip | null>;
 export function useSoundboard(clips: SoundClips, enabled: boolean): (key: string) => void {
   const contextRef = useRef<AudioContext | null>(null);
   const buffersRef = useRef<Map<string, AudioBuffer>>(new Map());
+  /** The source currently playing for each clip, so a repeat can retrigger it. */
+  const playingRef = useRef<Map<string, AudioBufferSourceNode>>(new Map());
 
   // Read inside the play callback so toggling sound off never has to rebuild it.
   const enabledRef = useRef(enabled);
@@ -81,6 +83,23 @@ export function useSoundboard(clips: SoundClips, enabled: boolean): (key: string
       if (context.state === 'suspended') void context.resume().catch(() => undefined);
 
       try {
+        /*
+         * Retrigger: cut any still-playing copy of *this* clip before starting
+         * a new one. Several of these clips run for seconds, so clicking a
+         * button twice in a row would otherwise stack copies on top of each
+         * other — they sum, clip, and turn to mush. Different clips still
+         * overlap freely, which is what you want when a click sound lands on
+         * top of a spell.
+         */
+        const previous = playingRef.current.get(key);
+        if (previous) {
+          try {
+            previous.stop();
+          } catch {
+            // Already finished. Nothing to stop.
+          }
+        }
+
         const source = context.createBufferSource();
         source.buffer = buffer;
 
@@ -89,7 +108,10 @@ export function useSoundboard(clips: SoundClips, enabled: boolean): (key: string
 
         source.connect(gain).connect(context.destination);
 
-        const startAt = context.currentTime;
+        // Never schedule into the past: on a context that has just resumed,
+        // currentTime can be behind by the time this runs, and a stop() in the
+        // past silences the clip before it is heard.
+        const startAt = Math.max(context.currentTime, 0);
         const limit = clip.maxSeconds;
 
         if (typeof limit === 'number' && limit < buffer.duration) {
@@ -102,6 +124,13 @@ export function useSoundboard(clips: SoundClips, enabled: boolean): (key: string
         } else {
           source.start(startAt);
         }
+
+        playingRef.current.set(key, source);
+        source.addEventListener('ended', () => {
+          // Release the node so the graph doesn't grow for the whole session.
+          gain.disconnect();
+          if (playingRef.current.get(key) === source) playingRef.current.delete(key);
+        });
       } catch {
         // Playback refused. Not worth surfacing.
       }

@@ -13,8 +13,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { ThemePet } from '../themes/theme.types';
 import { CandleGauge } from './CandleGauge';
-import type { GaugeState } from './gauge';
-import { withAlpha } from './colour';
+import { gaugeCssVariables, type GaugeState } from './gauge';
 import { useTheme } from './ThemeProvider';
 
 interface SceneProps {
@@ -31,9 +30,9 @@ export function Scene({ pet, gauge, durationMs, lit, children }: SceneProps) {
   const { scene, copy } = useTheme();
 
   const style = {
-    '--wt-gauge-colour': gauge.colour,
-    '--wt-gauge-glow': withAlpha(gauge.colour, 0.5),
-    '--wt-gauge-soft': withAlpha(gauge.colour, 0.18),
+    // Repeated here (as well as on the page wrapper) so the scene still has
+    // them when it is portalled into a popped-out window.
+    ...gaugeCssVariables(gauge),
 
     // Per-render, because each pet is a separately generated picture.
     '--wt-frame-top': `${pet.frame.topPercent}%`,

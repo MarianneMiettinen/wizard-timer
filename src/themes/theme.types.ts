@@ -291,6 +291,11 @@ export interface ThemeCopy {
   poppedOutHeading: string;
   poppedOutBody: string;
   poppedOutReturn: string;
+  /**
+   * Follows the countdown in the browser-tab title, e.g. "12:04 · Focus".
+   * Kept short — a tab strip gives you very few characters.
+   */
+  tabTitleSuffix: string;
   /** Heading of the pet chooser popover. */
   petPickerLabel: string;
   /** Accessible names for the music toggle's two states. */

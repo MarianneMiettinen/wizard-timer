@@ -22,9 +22,16 @@ interface SessionBarProps {
   durationMs: number;
   onSelect(durationMs: number): void;
   onReset(): void;
+  /** Draws attention to reset once the session is over — it's the next step. */
+  highlightReset?: boolean;
 }
 
-export function SessionBar({ durationMs, onSelect, onReset }: SessionBarProps) {
+export function SessionBar({
+  durationMs,
+  onSelect,
+  onReset,
+  highlightReset = false,
+}: SessionBarProps) {
   const { session, copy } = useTheme();
 
   return (
@@ -50,7 +57,13 @@ export function SessionBar({ durationMs, onSelect, onReset }: SessionBarProps) {
         })}
       </div>
 
-      <button type="button" className="wt-chip wt-chip--quiet" onClick={onReset}>
+      <button
+        type="button"
+        className={
+          highlightReset ? 'wt-chip wt-chip--quiet wt-chip--glow' : 'wt-chip wt-chip--quiet'
+        }
+        onClick={onReset}
+      >
         {copy.reset}
       </button>
     </div>
