@@ -22,6 +22,12 @@ import type { Theme } from '../theme.types';
 import sceneCat from './assets/scene-cat.png';
 import sceneOwl from './assets/scene-owl.png';
 import completeSound from './assets/spell-complete.wav';
+import clickSound from './assets/sounds/matthewvakaliuk73627-mouse-click.mp3';
+import startSound from './assets/sounds/daviddumais-magical-spell-cast.mp3';
+import pauseSound from './assets/sounds/freesound-clockwork-timer.mp3';
+import resetSound from './assets/sounds/biww-fire-burst-flame-sound-effect.mp3';
+import catSound from './assets/sounds/cat.mp3';
+import owlSound from './assets/sounds/lazychillzone-owl-hooting.mp3';
 
 export const wizardSchoolTheme: Theme = {
   id: 'wizard-school',
@@ -119,6 +125,9 @@ export const wizardSchoolTheme: Theme = {
         start: { xPercent: 50.1, yPercent: 83.7, radiusPercent: 6.7 },
         music: { xPercent: 64.6, yPercent: 84.7, radiusPercent: 5.5 },
       },
+      // Quiet source (peaks at 0.10), so it needs lifting well past 1 to sit
+      // alongside the owl. Trimmed — 5.5s of meow outlasts the moment.
+      sound: { src: catSound, gain: 3.5, maxSeconds: 3.5 },
     },
     {
       id: 'owl',
@@ -141,15 +150,31 @@ export const wizardSchoolTheme: Theme = {
         start: { xPercent: 50.71, yPercent: 83.69, radiusPercent: 7.28 },
         music: { xPercent: 65.94, yPercent: 84.36, radiusPercent: 6.03 },
       },
+      // Much hotter source than the cat — turned down, not up.
+      sound: { src: owlSound, gain: 0.32, maxSeconds: 3 },
     },
   ],
 
+  /*
+   * Gains are matched by measured loudness, not by taste — every clip was
+   * decoded and its RMS and peak read off, then levelled to roughly RMS 0.05.
+   * The raw files are nowhere near each other: the cat sits at RMS 0.014 and
+   * peaks at 0.10, the spell cast at RMS 0.180. Playing them at the same
+   * nominal volume would make the cat inaudible and the spell startling.
+   */
   sounds: {
+    // Fires on every button as well as whatever else that button plays, so it
+    // is mixed well under everything and kept short.
+    click: { src: clickSound, gain: 0.8 },
+    start: { src: startSound, gain: 0.3 },
+    // The source is 49 seconds of clockwork ambience. Cut to a couple of
+    // seconds so it marks the pause instead of scoring it.
+    pause: { src: pauseSound, gain: 1.8, maxSeconds: 2.4 },
+    reset: { src: resetSound, gain: 0.5 },
     // Rising bell arpeggio with a sparkle tail. Deliberately soft-edged: it
     // fires when someone may have forgotten the timer was running, so it has to
     // read as "that's done", not as an alarm.
-    complete: completeSound,
-    completeVolume: 0.5,
+    complete: { src: completeSound, gain: 0.45 },
   },
 
   session: {

@@ -154,6 +154,8 @@ export interface ThemePet {
    */
   frame: ThemeFrame;
   buttons: ThemeSceneButtons;
+  /** Played when this pet is chosen. */
+  sound: ThemeSoundClip | null;
   /**
    * CSS `background-position` for the thumbnail crop, as %.
    *
@@ -202,14 +204,39 @@ export interface ThemeScene {
   timerYPercent: number;
 }
 
-export interface ThemeSounds {
+/**
+ * One sound effect.
+ *
+ * `gain` is a multiplier, not a volume slider — **values above 1 are expected**.
+ * Source clips vary enormously in level, and matching them by ear at the theme
+ * layer is the only place it can be done without touching a component. Check a
+ * clip's peak before choosing: gain × peak above 1 clips and sounds harsh.
+ */
+export interface ThemeSoundClip {
+  src: string;
+  gain: number;
   /**
-   * Played once when the session ends. `null` means silent, which is a valid
-   * theme — no app should require a sound file to work.
+   * Stop after this many seconds, with a short fade. For clips that are longer
+   * than the moment they mark — an ambience loop used as a one-shot cue.
+   * Omit to play the whole file.
    */
-  complete: string | null;
-  /** 0–1. */
-  completeVolume: number;
+  maxSeconds?: number;
+}
+
+/**
+ * Sounds tied to app events. Any of them may be `null`, which means silence —
+ * no app should require a sound file to work.
+ *
+ * `click` fires on *every* button in addition to whatever that button's own
+ * sound is, so keep it short and quiet or it will wear out fast.
+ */
+export interface ThemeSounds {
+  click: ThemeSoundClip | null;
+  start: ThemeSoundClip | null;
+  pause: ThemeSoundClip | null;
+  reset: ThemeSoundClip | null;
+  /** Played once when the session ends. */
+  complete: ThemeSoundClip | null;
 }
 
 export interface ThemeSession {
