@@ -139,11 +139,55 @@ export interface ThemeSceneButton {
  * adding a pet costs no extra download and the thumbnail can never disagree
  * with what you get.
  */
+/**
+ * A pet cut out of a source picture and dropped into the scene, for pets that
+ * have no scene render of their own.
+ *
+ * There is no alpha channel and no cut-out file. The source art sits on a
+ * near-black background, so the sprite is composited with `lighten`: each
+ * channel takes the brighter of sprite and scene, which drops a black backdrop
+ * completely and keeps soft edges — fur and sparkles feather out instead of
+ * ending on the hard rectangle a crop would otherwise show.
+ *
+ * That only works over a *dark* destination, which is why a pet using an
+ * overlay almost always needs `erase` as well: the painted pet underneath must
+ * be blacked out first, or its bright parts (eyes, sparkles) survive the
+ * lighten and both animals show at once.
+ */
+export interface ThemePetOverlay {
+  /** Source picture to cut from. */
+  src: string;
+  /** The crop, as % of the *source* image. */
+  cropLeftPercent: number;
+  cropTopPercent: number;
+  cropWidthPercent: number;
+  cropHeightPercent: number;
+  /**
+   * Width ÷ height of the crop **in pixels**, which the percentages alone
+   * cannot give (they are relative to a source whose own shape CSS never sees).
+   * Sets the sprite's height from its width so it is never stretched.
+   */
+  cropAspect: number;
+  /** Where it lands, as % of the *scene*. Height follows the crop's aspect. */
+  leftPercent: number;
+  topPercent: number;
+  widthPercent: number;
+  /** Fine brightness trim, so a pet doesn't glow brighter than the painting. */
+  opacity?: number;
+}
+
 export interface ThemePet {
   id: string;
   label: string;
-  /** Full scene artwork showing this pet. */
+  /** Full scene artwork showing this pet — or acting as its backdrop. */
   scene: string;
+  /** Cut-out pet composited onto `scene`. Omit for pets painted into the art. */
+  overlay?: ThemePetOverlay;
+  /**
+   * Blacked out before the overlay is drawn — normally the pet already painted
+   * into `scene`, which would otherwise sit there alongside the new one.
+   */
+  erase?: ThemeEraseRect[];
   /**
    * Where the painted UI sits **in this render**.
    *

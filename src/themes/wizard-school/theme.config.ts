@@ -21,6 +21,8 @@ import type { Theme } from '../theme.types';
 // includes them. A bare '/assets/x.png' string would silently 404 in the build.
 import sceneCat from './assets/scene-cat.png';
 import sceneOwl from './assets/scene-owl.png';
+import petsSheet from './assets/pets-sheet.png';
+import puffArt from './assets/puff.png';
 import completeSound from './assets/spell-complete.wav';
 import clickSound from './assets/sounds/matthewvakaliuk73627-mouse-click.mp3';
 import startSound from './assets/sounds/daviddumais-magical-spell-cast.mp3';
@@ -154,6 +156,100 @@ export const wizardSchoolTheme: Theme = {
       },
       // Much hotter source than the cat — turned down, not up.
       sound: { src: owlSound, gain: 0.32, maxSeconds: 3 },
+    },
+
+    /*
+     * The toad and the puff have no scene render of their own, so they borrow
+     * the cat's picture as a backdrop, black the cat out of it, and get
+     * composited in from their source art. See ThemePetOverlay for why this
+     * needs no cut-out files.
+     *
+     * They therefore reuse the cat render's frame and button geometry, because
+     * that is literally the picture underneath.
+     */
+    {
+      id: 'toad',
+      label: 'Toad',
+      scene: sceneCat,
+      // Cut from the three-pet sheet: the toad on the right, plus its cyan
+      // swirl. Starts right of the owl so no second animal creeps into frame.
+      overlay: {
+        src: petsSheet,
+        cropLeftPercent: 64.78,
+        cropTopPercent: 45.9,
+        cropWidthPercent: 31.25,
+        cropHeightPercent: 47.66,
+        cropAspect: 0.984,
+        leftPercent: 68.5,
+        topPercent: 55,
+        widthPercent: 17,
+      },
+      // Covers the painted cat and its purple aura (x≈940–1230, y≈480–870),
+      // with room to spare for the mask's soft edge.
+      erase: [
+        { leftPercent: 64.9, topPercent: 35.7, widthPercent: 26.4, heightPercent: 48.1 },
+      ],
+      focusXPercent: 92.8,
+      focusYPercent: 90.1,
+      focusZoom: 3.2,
+      frame: {
+        topPercent: 4.01,
+        rightPercent: 5.28,
+        bottomPercent: 4.1,
+        leftPercent: 5.28,
+        radiusPercent: 1.9,
+        glowSpreadPercent: 1.5,
+      },
+      buttons: {
+        pet: { xPercent: 35.5, yPercent: 84.2, radiusPercent: 5.6 },
+        start: { xPercent: 50.1, yPercent: 83.7, radiusPercent: 6.7 },
+        music: { xPercent: 64.6, yPercent: 84.7, radiusPercent: 5.5 },
+        hide: { xPercent: 91.4, yPercent: 8.9, radiusPercent: 2.4 },
+      },
+      // No toad sound in the set yet.
+      sound: null,
+    },
+    {
+      id: 'puff',
+      label: 'Puff',
+      scene: sceneCat,
+      // Its source art is already a lone subject on pure black, which is the
+      // ideal case for the lighten blend — the backdrop vanishes completely.
+      overlay: {
+        src: puffArt,
+        cropLeftPercent: 18.83,
+        cropTopPercent: 16.93,
+        cropWidthPercent: 64.91,
+        cropHeightPercent: 66.13,
+        cropAspect: 1.226,
+        leftPercent: 67,
+        topPercent: 56.3,
+        widthPercent: 20,
+        // Trimmed slightly: the source is brighter than anything else in this
+        // candlelit room, and full strength makes it look pasted on.
+        opacity: 0.94,
+      },
+      erase: [
+        { leftPercent: 64.9, topPercent: 35.7, widthPercent: 26.4, heightPercent: 48.1 },
+      ],
+      focusXPercent: 52.4,
+      focusYPercent: 50,
+      focusZoom: 2.2,
+      frame: {
+        topPercent: 4.01,
+        rightPercent: 5.28,
+        bottomPercent: 4.1,
+        leftPercent: 5.28,
+        radiusPercent: 1.9,
+        glowSpreadPercent: 1.5,
+      },
+      buttons: {
+        pet: { xPercent: 35.5, yPercent: 84.2, radiusPercent: 5.6 },
+        start: { xPercent: 50.1, yPercent: 83.7, radiusPercent: 6.7 },
+        music: { xPercent: 64.6, yPercent: 84.7, radiusPercent: 5.5 },
+        hide: { xPercent: 91.4, yPercent: 8.9, radiusPercent: 2.4 },
+      },
+      sound: null,
     },
   ],
 

@@ -50,7 +50,9 @@ export function PetPicker({ anchor, activeId, onSelect, onDismiss }: PetPickerPr
 
   function thumbnailStyle(pet: ThemePet) {
     return {
-      backgroundImage: `url("${pet.scene}")`,
+      // A composited pet is not in its backdrop, so cropping the backdrop would
+      // show whichever animal is painted there — the cat, for every one of them.
+      backgroundImage: `url("${pet.overlay?.src ?? pet.scene}")`,
       backgroundSize: `${pet.focusZoom * 100}%`,
       backgroundPosition: `${pet.focusXPercent}% ${pet.focusYPercent}%`,
     };

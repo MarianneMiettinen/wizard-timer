@@ -79,6 +79,37 @@ body {
   pointer-events: none;
 }
 
+/*
+ * Hiding a painted *pet* is a bigger job than hiding a small arrow: it has
+ * bright eyes and a glowing aura, and any of it surviving means two animals on
+ * screen at once. So the opaque core reaches much further out before the edge
+ * begins to feather.
+ */
+.wt-scene__erase--strong {
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    var(--wt-color-scene-mask) 0%,
+    var(--wt-color-scene-mask) 82%,
+    transparent 100%
+  );
+}
+
+/*
+ * A pet cut from a sheet and dropped into the scene.
+ *
+ * `lighten` is what removes the source's black backdrop: each channel keeps the
+ * brighter of sprite and scene, so black contributes nothing and soft edges —
+ * fur, sparkles — feather out instead of stopping at the crop rectangle. It
+ * only works over a dark destination, which is why the painted pet underneath
+ * is blacked out first.
+ */
+.wt-scene__pet {
+  position: absolute;
+  background-repeat: no-repeat;
+  mix-blend-mode: lighten;
+  pointer-events: none;
+}
+
 /* The painted gold frame, re-lit in the candle's current colour. */
 .wt-scene__frame {
   position: absolute;

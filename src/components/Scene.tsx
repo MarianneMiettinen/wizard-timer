@@ -11,10 +11,52 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react';
-import type { ThemePet } from '../themes/theme.types';
+import type { ThemePet, ThemePetOverlay } from '../themes/theme.types';
 import { CandleGauge } from './CandleGauge';
 import { gaugeCssVariables, type GaugeState } from './gauge';
 import { useTheme } from './ThemeProvider';
+
+/**
+ * Draws a cropped pet from a sheet, blended into the scene.
+ *
+ * The crop is expressed in the theme as a plain rectangle in percentages of the
+ * source picture, which is the only form a human can measure and check. Turning
+ * that into `background-size` / `background-position` is fiddly enough to be
+ * worth doing once, here, rather than in every theme:
+ *
+ *  - **size**: scale the source so the crop exactly fills the box — the crop is
+ *    `cropWidthPercent` of the image, so the image must be `100 / crop` times
+ *    the box.
+ *  - **position**: percentage positioning aligns the same percentage point of
+ *    image and container, so showing a window that starts at `cropLeft`
+ *    needs `cropLeft / (100 - cropWidth) × 100`, not `cropLeft`.
+ */
+function PetOverlay({ overlay }: { overlay: ThemePetOverlay }) {
+  const positionAxis = (start: number, size: number) =>
+    size >= 100 ? 0 : (start / (100 - size)) * 100;
+
+  return (
+    <div
+      className="wt-scene__pet"
+      aria-hidden="true"
+      style={{
+        left: `${overlay.leftPercent}%`,
+        top: `${overlay.topPercent}%`,
+        width: `${overlay.widthPercent}%`,
+        aspectRatio: String(overlay.cropAspect),
+        opacity: overlay.opacity ?? 1,
+        backgroundImage: `url("${overlay.src}")`,
+        backgroundSize: `${(100 / overlay.cropWidthPercent) * 100}% ${
+          (100 / overlay.cropHeightPercent) * 100
+        }%`,
+        backgroundPosition: `${positionAxis(
+          overlay.cropLeftPercent,
+          overlay.cropWidthPercent,
+        )}% ${positionAxis(overlay.cropTopPercent, overlay.cropHeightPercent)}%`,
+      }}
+    />
+  );
+}
 
 interface SceneProps {
   /** The chosen pet — carries both the artwork and its measured geometry. */
@@ -60,6 +102,23 @@ export function Scene({ pet, gauge, durationMs, lit, children }: SceneProps) {
           }}
         />
       ))}
+
+      {/* Blacks out the pet painted into this backdrop, so only one shows. */}
+      {pet.erase?.map((rect, index) => (
+        <div
+          key={`pet-erase-${index}`}
+          className="wt-scene__erase wt-scene__erase--strong"
+          aria-hidden="true"
+          style={{
+            left: `${rect.leftPercent}%`,
+            top: `${rect.topPercent}%`,
+            width: `${rect.widthPercent}%`,
+            height: `${rect.heightPercent}%`,
+          }}
+        />
+      ))}
+
+      {pet.overlay && <PetOverlay overlay={pet.overlay} />}
 
       {/* The painted gold frame, re-lit in the candle's current colour. */}
       <div className="wt-scene__frame" aria-hidden="true" />
