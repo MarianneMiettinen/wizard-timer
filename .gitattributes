@@ -1,0 +1,3 @@
+# Keep line endings consistent between Windows (here) and Linux (Vercel's builders),
+# so diffs show real changes and not whole-file rewrites.
+* text=auto eol=lf
