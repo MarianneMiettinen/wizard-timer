@@ -52,6 +52,27 @@ Presentational only. Components read values from the theme via `useTheme()` and
 receive numbers from `/core` as props. They contain layout, structure and
 accessibility behaviour — never a colour, never a sentence.
 
+### How this theme paints: overlay, don't rebuild
+
+Wizard School is one piece of full-scene artwork with the UI painted into it.
+Rather than rebuilding that UI in HTML, the app sits on top of the picture:
+
+- **Everything is positioned in percentages of the artwork**, never in pixels.
+  The scene is one aspect-ratio-locked box with `container-type: inline-size`,
+  so overlays use `cqw` units and stay glued to the painting at any size.
+- **The candle is erased, not drawn.** The painted candle already has its colour
+  ramp; the app covers the burned-away part with a near-black panel and draws a
+  fresh flame at the cut. This only works because the wall behind the candle is
+  almost black (sampled at `[6,2,0]`). Brighter art needs real layered assets.
+- **Painted UI that would go stale gets erased too** — the fixed level arrow,
+  the "90 / 60 / 30 MIN" labels — and is redrawn from live values.
+- **Measure the geometry, don't eyeball it.** Every percentage in `scene` and in
+  each pet's `frame` / `buttons` came from sampling the PNG's pixels in a
+  canvas. An overlay 1% out is plainly visible as a painted ring peeking out
+  from behind its replacement.
+- **Each pet is a whole separate render**, so its frame and buttons land in
+  different places. That geometry lives on the pet, not on the theme.
+
 ### `/src/App.tsx` — the wiring
 
 Picks the active theme, picks the storage key, connects one to the other. It is

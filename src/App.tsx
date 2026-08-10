@@ -5,13 +5,15 @@
  * component (if it's about pixels).
  */
 
-import { useTheme, ThemeProvider } from './components/ThemeProvider';
-import { Controls } from './components/Controls';
-import { CustomDuration } from './components/CustomDuration';
-import { DurationPicker } from './components/DurationPicker';
-import { Stage } from './components/Stage';
-import { TimerDisplay } from './components/TimerDisplay';
+import { useCallback, useState } from 'react';
+import { PetPicker } from './components/PetPicker';
+import { SessionBar } from './components/SessionBar';
+import { Scene } from './components/Scene';
+import { SceneButton } from './components/SceneButton';
+import { ThemeProvider, useTheme } from './components/ThemeProvider';
+import { TimerReadout } from './components/TimerReadout';
 import { useCompletionSound } from './components/useCompletionSound';
+import { CatIcon, MusicIcon, MutedMusicIcon, PauseIcon, PlayIcon } from './components/icons';
 import { useTimer } from './core/useTimer';
 
 import { wizardSchoolTheme } from './themes/wizard-school/theme.config';
@@ -46,15 +48,29 @@ export default function App() {
  * context that it renders the provider for.
  */
 function TimerScreen() {
-  const { copy, session, sounds } = useTheme();
+  const { copy, pets, session, sounds } = useTheme();
 
-  const playCompletionSound = useCompletionSound(sounds.complete, sounds.completeVolume);
+  const defaultPet = pets[0];
+  const [petId, setPetId] = useState(defaultPet?.id ?? '');
+  const [petPickerOpen, setPetPickerOpen] = useState(false);
+  const [soundOn, setSoundOn] = useState(true);
+
+  const activePet = pets.find((pet) => pet.id === petId) ?? defaultPet;
+
+  // Passing null when muted means the muted state is enforced at the source,
+  // rather than by remembering not to call play().
+  const playCompletionSound = useCompletionSound(
+    soundOn ? sounds.complete : null,
+    sounds.completeVolume,
+  );
 
   const timer = useTimer({
     storageKey: STORAGE_KEY,
     defaultDurationMs: session.defaultMinutes * MS_PER_MINUTE,
     onFinish: playCompletionSound,
   });
+
+  const dismissPetPicker = useCallback(() => setPetPickerOpen(false), []);
 
   // Screen-reader announcement. Derived rather than stored, so it can only ever
   // describe the status the UI is actually in.
@@ -67,26 +83,80 @@ function TimerScreen() {
           ? copy.announceFinished
           : copy.announceReset;
 
+  if (!activePet) return null;
+
   return (
     <main className="wt-main">
-      <h1 className="wt-title">{copy.title}</h1>
+      <h1 className="wt-visually-hidden">{copy.title}</h1>
 
-      <Stage elapsedFraction={timer.elapsedFraction} lit={timer.isRunning} />
+      <Scene
+        pet={activePet}
+        remainingFraction={1 - timer.elapsedFraction}
+        durationMs={timer.durationMs}
+        // Lit unless it has burned out. A candle that goes dark the moment you
+        // pause reads as "you lost it" — the artwork's whole mood is a candle
+        // quietly burning, and pausing shouldn't punish you with darkness.
+        lit={!timer.isFinished}
+      >
+        <TimerReadout
+          display={timer.display}
+          announcement={announcement}
+          editable={!timer.isRunning}
+          onCommit={timer.setDurationMs}
+        />
 
-      <TimerDisplay display={timer.display} announcement={announcement} />
+        {timer.isFinished && (
+          <div className="wt-finished">
+            <p className="wt-finished__heading">{copy.finishedHeading}</p>
+            <p className="wt-finished__body">{copy.finishedBody}</p>
+          </div>
+        )}
 
-      {timer.isFinished && (
-        <div className="wt-finished">
-          <p className="wt-finished__heading">{copy.finishedHeading}</p>
-          <p className="wt-finished__body">{copy.finishedBody}</p>
-        </div>
-      )}
+        <SceneButton
+          position={activePet.buttons.pet}
+          label={copy.petButton}
+          accessibleLabel={copy.petPickerLabel}
+          icon={<CatIcon />}
+          onClick={() => setPetPickerOpen((open) => !open)}
+          expanded={petPickerOpen}
+        />
 
-      <Controls status={timer.status} onToggle={timer.toggle} onReset={timer.reset} />
+        <SceneButton
+          position={activePet.buttons.start}
+          label={timer.isRunning ? copy.pauseButton : copy.startButton}
+          accessibleLabel={timer.isRunning ? copy.pauseAction : copy.startAction}
+          icon={timer.isRunning ? <PauseIcon /> : <PlayIcon />}
+          onClick={timer.toggle}
+          emphasis
+        />
 
-      <DurationPicker durationMs={timer.durationMs} onSelect={timer.setDurationMs} />
+        <SceneButton
+          position={activePet.buttons.music}
+          label={copy.musicButton}
+          accessibleLabel={soundOn ? copy.soundOn : copy.soundOff}
+          icon={soundOn ? <MusicIcon /> : <MutedMusicIcon />}
+          onClick={() => setSoundOn((on) => !on)}
+          pressed={soundOn}
+        />
 
-      <CustomDuration durationMs={timer.durationMs} onSelect={timer.setDurationMs} />
+        {petPickerOpen && (
+          <PetPicker
+            anchor={activePet.buttons.pet}
+            activeId={activePet.id}
+            onSelect={(id) => {
+              setPetId(id);
+              setPetPickerOpen(false);
+            }}
+            onDismiss={dismissPetPicker}
+          />
+        )}
+      </Scene>
+
+      <SessionBar
+        durationMs={timer.durationMs}
+        onSelect={timer.setDurationMs}
+        onReset={timer.reset}
+      />
     </main>
   );
 }

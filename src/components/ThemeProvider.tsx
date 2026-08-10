@@ -1,6 +1,6 @@
 /**
  * Makes the active theme available two ways:
- *   - as a React context, for values components read directly (copy, numbers)
+ *   - as a React context, for values components read directly (copy, geometry)
  *   - as CSS custom properties, for values the stylesheet needs (colours, fonts)
  *
  * The CSS custom properties are the important half. They are why app.css can be
@@ -25,13 +25,12 @@ export function useTheme(): Theme {
 }
 
 function toCssVariables(theme: Theme): CSSProperties {
-  const { colors, fonts, assets, candle, stage } = theme;
+  const { colors, fonts, scene } = theme;
 
   // Cast: React's CSSProperties doesn't model custom properties, but the DOM
   // accepts them and this is the standard way to set them from a style object.
   return {
     '--wt-color-background': colors.background,
-    '--wt-color-background-scrim': colors.backgroundScrim,
     '--wt-color-surface': colors.surface,
     '--wt-color-surface-border': colors.surfaceBorder,
     '--wt-color-text': colors.text,
@@ -39,19 +38,16 @@ function toCssVariables(theme: Theme): CSSProperties {
     '--wt-color-accent': colors.accent,
     '--wt-color-on-accent': colors.onAccent,
     '--wt-color-focus-ring': colors.focusRing,
-    '--wt-color-candle-glow': colors.candleGlow,
+    '--wt-color-scene-mask': colors.sceneMask,
 
     '--wt-font-display': fonts.display,
     '--wt-font-body': fonts.body,
 
-    '--wt-image-background': `url("${assets.background}")`,
-    '--wt-image-candle-wax': `url("${assets.candleWax}")`,
-
-    '--wt-candle-height': `${candle.heightPx}px`,
-    '--wt-candle-width': `${candle.widthPx}px`,
-    '--wt-candle-flame-height': `${candle.flameHeightPx}px`,
-
-    '--wt-character-height': `${stage.characterHeightPx}px`,
+    // Drives both the aspect-ratio box and the width formula that keeps the
+    // whole picture on screen on short windows.
+    '--wt-scene-ratio': String(scene.aspectWidth / scene.aspectHeight),
+    '--wt-scene-aspect': `${scene.aspectWidth} / ${scene.aspectHeight}`,
+    // Frame geometry is per-render, so <Scene> sets those variables instead.
   } as CSSProperties;
 }
 

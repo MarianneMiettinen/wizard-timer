@@ -6,9 +6,11 @@
  * theme.config.ts is not. Keep that asymmetry — it is the thing that makes a
  * new app a single-file edit.
  *
- * Rule of thumb for what belongs in here: if a second theme would plausibly
- * want a different value, it goes in the Theme. If every theme would want the
- * same value, it belongs in /core or /components instead.
+ * This theme layer is built around a single piece of full-scene artwork with
+ * the UI painted into it. Everything the app draws on top is positioned in
+ * **percentages of that artwork**, never in pixels, so the overlays stay
+ * locked to the picture at every window size. Swapping in different art means
+ * re-measuring those percentages here — and nothing else.
  */
 
 /**
@@ -19,24 +21,24 @@
  * `accent`, must each clear 4.5:1 to stay at WCAG 2.1 AA.
  */
 export interface ThemeColors {
-  /** Page colour behind the background image. Also what shows while it loads. */
+  /** Page colour around the artwork. Match the art's own edge so it blends. */
   background: string;
-  /** Laid over the background image so text stays readable on top of it. */
-  backgroundScrim: string;
-  /** Panels and cards. */
   surface: string;
   surfaceBorder: string;
   text: string;
   /** Secondary text. Must still clear 4.5:1 on `surface`. */
   textMuted: string;
-  /** Primary action. */
   accent: string;
   /** Text and icons drawn on top of `accent`. */
   onAccent: string;
   /** Keyboard focus ring. Pick something that stands out against everything else. */
   focusRing: string;
-  /** Glow cast around the flame. Usually a translucent form of the flame colour. */
-  candleGlow: string;
+  /**
+   * Paints over the part of the printed candle that has already burned away.
+   * Must match the artwork's wall behind the candle, or the erased strip shows
+   * as a patch. Sample it from the art rather than guessing.
+   */
+  sceneMask: string;
 }
 
 /** Full CSS font stacks. Keep a system fallback last so nothing waits on a download. */
@@ -46,15 +48,158 @@ export interface ThemeFonts {
 }
 
 /**
- * Import assets at the top of theme.config.ts and reference the imported value
- * here — don't write a bare string path. The import is what tells the bundler
- * to include and fingerprint the file.
+ * The gold frame painted around the edge of the artwork. The app draws a glow
+ * on top of it that takes the candle's current colour, so these numbers have to
+ * line up with the painted frame.
  */
-export interface ThemeAssets {
-  background: string;
-  character: string;
-  candleWax: string;
-  candleFlame: string;
+export interface ThemeFrame {
+  topPercent: number;
+  rightPercent: number;
+  bottomPercent: number;
+  leftPercent: number;
+  /** Corner radius, as a percentage of artwork width. */
+  radiusPercent: number;
+  /** How far the glow spreads, as a percentage of artwork width. */
+  glowSpreadPercent: number;
+}
+
+/**
+ * The candle gauge.
+ *
+ * The candle is painted into the artwork already, complete with its colour
+ * ramp. The app does not draw a candle — it *erases* the part that has burned
+ * away and draws a fresh flame at the cut.
+ *
+ * Every session starts at `fullTopPercent` and ends at `zeroTopPercent`,
+ * whatever its length, so the fall always looks the same.
+ */
+export interface ThemeCandleGauge {
+  /**
+   * Column to erase, as % of artwork width. Wider than the wax itself so it
+   * also covers the flame's glow and the drips down the sides.
+   */
+  leftPercent: number;
+  rightPercent: number;
+  /**
+   * The wax column itself — narrower than the erase column. The molten lip and
+   * the flame sit on *this*, or they hang in mid-air off the sides of the
+   * candle.
+   */
+  bodyLeftPercent: number;
+  bodyRightPercent: number;
+  /** Y of the candle's tip at the start of any session. */
+  fullTopPercent: number;
+  /** Y the flame reaches at zero. Below this is the base the art keeps. */
+  zeroTopPercent: number;
+  /** Everything painted above this is erased. Must clear the printed flame. */
+  maskTopPercent: number;
+  /** Drawn flame height, as % of artwork height. */
+  flameHeightPercent: number;
+  /**
+   * The printed candle's colour ramp, top (most time left) → bottom (least),
+   * as `#rrggbb`. Sampled from the artwork so the drawn flame and the frame
+   * glow match the paint underneath them. Evenly spaced along the candle.
+   */
+  gradient: string[];
+  /** The scale printed beside the candle, which the app redraws to match. */
+  ticks: ThemeCandleTicks;
+}
+
+/**
+ * The artwork has "90 / 60 / 30 MIN" painted beside the candle, which is only
+ * true for a 90-minute session. The app erases that strip and redraws the
+ * labels from the session actually running, so the scale never lies.
+ *
+ * Set `fractions: []` to erase the printed scale and draw nothing in its place.
+ */
+export interface ThemeCandleTicks {
+  /** Strip of artwork to erase, as % — must cover the painted labels. */
+  leftPercent: number;
+  rightPercent: number;
+  maskTopPercent: number;
+  maskBottomPercent: number;
+  /** Points of the session to mark, as fractions remaining. */
+  fractions: number[];
+}
+
+/** A round button painted into the artwork, which the app makes real. */
+export interface ThemeSceneButton {
+  /** Centre, as % of artwork width / height. */
+  xPercent: number;
+  yPercent: number;
+  /** Radius, as % of artwork **width** (so it scales with the picture). */
+  radiusPercent: number;
+}
+
+/**
+ * A pet is a whole alternate render of the scene, not a sprite — the artwork
+ * differs everywhere, so switching pets swaps the background image.
+ *
+ * The chooser thumbnail is a zoomed crop of that same image, which means
+ * adding a pet costs no extra download and the thumbnail can never disagree
+ * with what you get.
+ */
+export interface ThemePet {
+  id: string;
+  label: string;
+  /** Full scene artwork showing this pet. */
+  scene: string;
+  /**
+   * Where the painted UI sits **in this render**.
+   *
+   * Each pet is a separately generated picture, so the frame and buttons land
+   * in slightly different places — up to about 1.3% apart, which is plainly
+   * visible as a painted ring peeking out from behind its overlay. Measure
+   * these per render rather than sharing one set and hoping.
+   */
+  frame: ThemeFrame;
+  buttons: ThemeSceneButtons;
+  /**
+   * CSS `background-position` for the thumbnail crop, as %.
+   *
+   * These are **not** "where the pet is in the picture". With a zoomed
+   * background, position is a ratio between the overflow and the container, so
+   * the value that centres an image point p at zoom z is
+   * `(p - 1/(2z)) * z/(z-1)`. And because `background-size` is set as a width
+   * percentage, the vertical zoom on non-square art is `z * height/width`, so
+   * the two axes need different maths. Getting this wrong shows a crop of
+   * empty wall, which is easy to miss and easy to fix — just look at it.
+   */
+  focusXPercent: number;
+  focusYPercent: number;
+  /** Horizontal zoom of the thumbnail crop. 1 = whole scene. */
+  focusZoom: number;
+}
+
+/** A rectangle of artwork the app paints over permanently, in % of the scene. */
+export interface ThemeEraseRect {
+  leftPercent: number;
+  topPercent: number;
+  widthPercent: number;
+  heightPercent: number;
+}
+
+export interface ThemeSceneButtons {
+  pet: ThemeSceneButton;
+  start: ThemeSceneButton;
+  music: ThemeSceneButton;
+}
+
+export interface ThemeScene {
+  /** Natural size of the artwork. Only the ratio matters; it locks the overlays. */
+  aspectWidth: number;
+  aspectHeight: number;
+  /**
+   * Static UI painted into the artwork that the app replaces with live
+   * equivalents — a fixed pointer, a stale label. Erased on every frame, not
+   * just while the timer runs.
+   */
+  erase: ThemeEraseRect[];
+  /** Shared across renders: how the gauge behaves, not where it sits. */
+  candle: ThemeCandleGauge;
+  /** Centre of the numeric readout, as % of the artwork. */
+  timerXPercent: number;
+  timerYPercent: number;
 }
 
 export interface ThemeSounds {
@@ -67,31 +212,6 @@ export interface ThemeSounds {
   completeVolume: number;
 }
 
-/** How the burn-down visual behaves. The maths lives in /core; this is its costume. */
-export interface ThemeCandle {
-  /** false hides the candle entirely, for a theme that marks time some other way. */
-  enabled: boolean;
-  /** Height of the candle at the start of a session. */
-  heightPx: number;
-  widthPx: number;
-  /**
-   * How much of the candle is left at the very end, as a percentage of
-   * `heightPx`. Never 0 — a stub with a flame reads as "done", an empty space
-   * reads as "broken".
-   */
-  minHeightPercent: number;
-  flameHeightPx: number;
-}
-
-/** Sizing for the scene, so art with different proportions can be dropped in. */
-export interface ThemeStage {
-  /**
-   * Height of the character image. Capped against viewport height in CSS, so
-   * this is a maximum rather than a fixed size.
-   */
-  characterHeightPx: number;
-}
-
 export interface ThemeSession {
   /** Buttons offered as session lengths, in minutes. */
   presetMinutes: number[];
@@ -99,8 +219,7 @@ export interface ThemeSession {
   defaultMinutes: number;
   /**
    * Ceiling for the typed hours/minutes entry, in minutes. Anything longer is
-   * clamped to this rather than rejected — a silent cap beats an error message
-   * for something nobody does on purpose.
+   * clamped to this rather than rejected.
    */
   maxMinutes: number;
 }
@@ -109,33 +228,39 @@ export interface ThemeSession {
  * Every word the UI can show. Nothing outside this object may contain
  * user-facing text — that is what makes a theme translatable and re-skinnable
  * without opening a component.
- *
- * Keep each string short. These are read by someone who is trying to start,
- * not to read.
  */
 export interface ThemeCopy {
   title: string;
-  tagline: string;
-  /** Alt text for the character image. */
-  characterAlt: string;
-  /** Label above the session-length buttons. */
+  /** Accessible description of the artwork, for people who can't see it. */
+  sceneAlt: string;
   durationLegend: string;
-  /** Appended to each preset number, e.g. "min". */
   minuteSuffix: string;
-  /** Label above the typed hours/minutes entry. */
-  customLegend: string;
-  hoursLabel: string;
-  minutesLabel: string;
-  /** Button that applies the typed duration. */
-  applyDuration: string;
-  start: string;
-  resume: string;
-  pause: string;
+  /** Unit printed under each candle tick, e.g. "MIN". */
+  tickSuffix: string;
+  /** Accessible name for the click-to-edit readout. */
+  editDurationLabel: string;
+  /** Hint shown under the readout when it can be edited. */
+  editDurationHint: string;
+  /** Labels printed under the round buttons. */
+  petButton: string;
+  startButton: string;
+  pauseButton: string;
+  musicButton: string;
+  /**
+   * Spoken names for the start/pause button. Each must still contain its
+   * visible label as a word — WCAG 2.5.3 (Label in Name), so that saying
+   * "click start" works for voice-control users.
+   */
+  startAction: string;
+  pauseAction: string;
+  /** Heading of the pet chooser popover. */
+  petPickerLabel: string;
+  /** Accessible names for the music toggle's two states. */
+  soundOn: string;
+  soundOff: string;
   reset: string;
-  /** Shown in place of the controls hint once the session ends. */
   finishedHeading: string;
   finishedBody: string;
-  /** Announced to screen readers on each status change. Not shown on screen. */
   announceRunning: string;
   announcePaused: string;
   announceReset: string;
@@ -149,10 +274,9 @@ export interface Theme {
   readonly name: string;
   readonly colors: ThemeColors;
   readonly fonts: ThemeFonts;
-  readonly assets: ThemeAssets;
+  readonly scene: ThemeScene;
+  readonly pets: readonly ThemePet[];
   readonly sounds: ThemeSounds;
-  readonly candle: ThemeCandle;
-  readonly stage: ThemeStage;
   readonly session: ThemeSession;
   readonly copy: ThemeCopy;
 }

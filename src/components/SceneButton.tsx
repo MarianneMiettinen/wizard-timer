@@ -1,0 +1,59 @@
+/**
+ * One of the round buttons painted into the artwork, made real.
+ *
+ * The overlay covers the painted button completely rather than sitting inside
+ * it, because it has to redraw the icon and label anyway — the START button's
+ * glyph changes, and a painted play triangle showing under a live pause icon
+ * would be worse than redrawing both.
+ *
+ * Position and size come from the theme as percentages of the artwork, so the
+ * button tracks the picture exactly at any size. `aspect-ratio: 1` on a
+ * percentage width is what keeps it circular.
+ */
+
+import type { ReactNode } from 'react';
+import type { ThemeSceneButton } from '../themes/theme.types';
+
+interface SceneButtonProps {
+  position: ThemeSceneButton;
+  /** Text drawn inside the circle, under the icon. */
+  label: string;
+  /** Overrides the label for assistive tech when the label alone is too terse. */
+  accessibleLabel?: string;
+  icon: ReactNode;
+  onClick(): void;
+  /** The larger, brighter treatment. The artwork gives START this weight. */
+  emphasis?: boolean;
+  expanded?: boolean;
+  pressed?: boolean;
+}
+
+export function SceneButton({
+  position,
+  label,
+  accessibleLabel,
+  icon,
+  onClick,
+  emphasis = false,
+  expanded,
+  pressed,
+}: SceneButtonProps) {
+  return (
+    <button
+      type="button"
+      className={emphasis ? 'wt-orb wt-orb--emphasis' : 'wt-orb'}
+      style={{
+        left: `${position.xPercent}%`,
+        top: `${position.yPercent}%`,
+        width: `${position.radiusPercent * 2}%`,
+      }}
+      onClick={onClick}
+      aria-label={accessibleLabel}
+      aria-expanded={expanded}
+      aria-pressed={pressed}
+    >
+      <span className="wt-orb__icon">{icon}</span>
+      <span className="wt-orb__label">{label}</span>
+    </button>
+  );
+}
