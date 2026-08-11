@@ -60,6 +60,12 @@ interface PictureInPictureProps {
   height: number;
   /** Fires when the window closes — including when the user closes it directly. */
   onClose(): void;
+  /**
+   * Fires only once a window really exists. Requests can be refused — the
+   * browser demands a recent user gesture — so callers must not assume that
+   * asking to open means it opened.
+   */
+  onOpen?(): void;
   /** Applied to the wrapper inside the popped-out window. */
   rootStyle: CSSProperties;
   children: ReactNode;
@@ -70,6 +76,7 @@ export function PictureInPicture({
   width,
   height,
   onClose,
+  onOpen,
   rootStyle,
   children,
 }: PictureInPictureProps) {
@@ -81,6 +88,11 @@ export function PictureInPicture({
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
+
+  const onOpenRef = useRef(onOpen);
+  useEffect(() => {
+    onOpenRef.current = onOpen;
+  }, [onOpen]);
 
   useEffect(() => {
     if (!open) return;
@@ -107,6 +119,7 @@ export function PictureInPicture({
         target.addEventListener('pagehide', () => onCloseRef.current());
         opened = target;
         setPipWindow(target);
+        onOpenRef.current?.();
       } catch (error) {
         // Refused — usually no user gesture, or already open. Fall back to
         // staying in the tab rather than leaving the caller stuck. Logged

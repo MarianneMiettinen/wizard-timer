@@ -78,6 +78,13 @@ function TimerScreen() {
   /** null means music off, which is a real choice in the list, not an absence. */
   const [musicMixId, setMusicMixId] = useState<string | null>(null);
   const [poppedOut, setPoppedOut] = useState(false);
+  /**
+   * True only once a floating window actually exists. Distinct from
+   * `poppedOut`, which merely means one has been *asked for* — and a request
+   * made while switching tabs is refused. Without the distinction, every
+   * refused attempt flashed the "it's floating on top" panel in the tab.
+   */
+  const [pipActive, setPipActive] = useState(false);
   const [runToken, setRunToken] = useState(0);
 
   const activePet = pets.find((pet) => pet.id === petId) ?? defaultPet;
@@ -168,7 +175,10 @@ function TimerScreen() {
     timer.reset();
   }, [play, timer]);
 
-  const handlePipClose = useCallback(() => setPoppedOut(false), []);
+  const handlePipClose = useCallback(() => {
+    setPoppedOut(false);
+    setPipActive(false);
+  }, []);
 
   /**
    * Popping out is desktop-only, but the width half of that is enforced in CSS,
@@ -363,12 +373,13 @@ function TimerScreen() {
         width={POPPED_OUT_WIDTH}
         height={Math.round(POPPED_OUT_WIDTH / (scene.aspectWidth / scene.aspectHeight))}
         onClose={handlePipClose}
+        onOpen={() => setPipActive(true)}
         rootStyle={themeStyle}
       >
         {timerScene}
       </PictureInPicture>
 
-      {poppedOut && (
+      {pipActive && (
         <div className="wt-poppedout">
           <p className="wt-poppedout__heading">{copy.poppedOutHeading}</p>
           <p className="wt-poppedout__body">{copy.poppedOutBody}</p>
