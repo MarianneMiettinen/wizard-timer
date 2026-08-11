@@ -37,9 +37,29 @@ function PetOverlay({ overlay }: { overlay: ThemePetOverlay }) {
     size >= 100 ? 0 : (start / (100 - size)) * 100;
 
   const aura = overlay.aura;
+  const shadow = overlay.shadow;
+  /** The sprite's height in scene-% — its width scaled by the crop's shape. */
+  const spriteHeightPercent = overlay.widthPercent / overlay.cropAspect;
 
   return (
     <>
+      {shadow && (
+        <div
+          className="wt-scene__pet-shadow"
+          aria-hidden="true"
+          style={{
+            left: `${overlay.leftPercent + overlay.widthPercent / 2}%`,
+            // Measured from the sprite's base, then lifted slightly so the
+            // shadow tucks under the body rather than trailing behind it.
+            top: `${overlay.topPercent + spriteHeightPercent * (1 - shadow.liftFraction)}%`,
+            width: `${overlay.widthPercent * shadow.widthScale}%`,
+            height: `${spriteHeightPercent * shadow.heightScale}%`,
+            transform: 'translate(-50%, -50%)',
+            opacity: shadow.opacity,
+          }}
+        />
+      )}
+
       {aura && (
         <div
           className="wt-scene__pet-aura"
@@ -47,7 +67,7 @@ function PetOverlay({ overlay }: { overlay: ThemePetOverlay }) {
           style={{
             // Centred on the sprite and grown outwards from it.
             left: `${overlay.leftPercent + overlay.widthPercent / 2}%`,
-            top: `${overlay.topPercent + overlay.widthPercent / overlay.cropAspect / 2}%`,
+            top: `${overlay.topPercent + spriteHeightPercent / 2}%`,
             width: `${overlay.widthPercent * aura.scale}%`,
             aspectRatio: '1',
             transform: 'translate(-50%, -50%)',

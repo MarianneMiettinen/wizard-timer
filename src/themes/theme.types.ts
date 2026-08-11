@@ -178,6 +178,8 @@ export interface ThemePetOverlay {
   widthPercent: number;
   /** Fine brightness trim, so a pet doesn't glow brighter than the painting. */
   opacity?: number;
+  /** Pool of shadow where the animal meets the desk. Omit for none. */
+  shadow?: ThemePetShadow;
   /**
    * Pool of light the pet sits in, in its own colour — the cat's purple, the
    * toad's cyan. Without it a composited pet reads as pasted on: it is the only
@@ -185,6 +187,17 @@ export interface ThemePetOverlay {
    * at a line. `scale` is a multiple of the sprite's width.
    */
   aura?: { colour: string; scale: number };
+}
+
+/** The dark pool that makes a composited pet look like it is resting on wood. */
+export interface ThemePetShadow {
+  /** Width as a multiple of the sprite's width. Wider than 1 spreads outward. */
+  widthScale: number;
+  /** Height as a fraction of the sprite's height. Keep it flat. */
+  heightScale: number;
+  /** How far up from the sprite's base to sit, as a fraction of its height. */
+  liftFraction: number;
+  opacity: number;
 }
 
 export interface ThemePet {

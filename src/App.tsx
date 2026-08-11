@@ -5,7 +5,7 @@
  * component (if it's about pixels).
  */
 
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { MagicStrike } from './components/MagicStrike';
 import { MobileControls } from './components/MobileControls';
 import { MusicPicker } from './components/MusicPicker';
@@ -112,6 +112,17 @@ function TimerScreen() {
     onFinish: playCompletionSound,
   });
 
+  /*
+   * Read by the visibility listener. Kept in refs so that listener can be
+   * registered once instead of being torn down and rebuilt on every tick of
+   * the clock — re-subscribing 4×/second would be wasteful and could miss the
+   * very event it exists to catch.
+   */
+  const runningRef = useRef(false);
+  const poppedOutRef = useRef(false);
+  runningRef.current = timer.isRunning;
+  poppedOutRef.current = poppedOut;
+
   const dismissPetPicker = useCallback(() => setPetPickerOpen(false), []);
   const dismissMusicPicker = useCallback(() => setMusicPickerOpen(false), []);
 
@@ -119,10 +130,15 @@ function TimerScreen() {
 
   useMusic({
     mix: activeMix,
-    // Runs through the focus session. Pausing the timer pauses the music too —
-    // and it keeps playing the moment a mix is chosen, so picking one is
-    // audible straight away rather than only after the next start.
-    playing: timer.status !== 'paused' && timer.status !== 'finished',
+    /*
+     * Only while the session is actually running.
+     *
+     * This previously played whenever the timer was not paused or finished,
+     * which included *idle* — so resetting to a new candle started the music
+     * again despite nobody having pressed play. Music belongs to the focus
+     * session, not to the app being open.
+     */
+    playing: timer.isRunning,
   });
 
   /**
@@ -161,6 +177,28 @@ function TimerScreen() {
    * silently won, hiding the control on desktop too.
    */
   const pipSupported = isPictureInPictureSupported();
+
+  /**
+   * Float the timer out on its own as soon as you look away, so leaving the tab
+   * is all it takes.
+   *
+   * Browsers guard this API behind a recent user gesture, and switching tabs is
+   * not one — so the request can be refused, in which case
+   * <PictureInPicture> reports failure and everything carries on in the tab.
+   * The tab title and icon keep the countdown visible either way.
+   */
+  useEffect(() => {
+    if (!pipSupported) return;
+
+    function onVisibilityChange() {
+      if (document.hidden && runningRef.current && !poppedOutRef.current) {
+        setPoppedOut(true);
+      }
+    }
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [pipSupported]);
 
   // Screen-reader announcement. Derived rather than stored, so it can only ever
   // describe the status the UI is actually in.

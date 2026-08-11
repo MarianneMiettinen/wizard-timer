@@ -95,18 +95,24 @@ body {
 .wt-scene__erase--strong {
   background: none;
   /*
-   * Blur does the hiding; the dimming is deliberately mild. A blur preserves
-   * the region's *mean* brightness while destroying its detail, so the patch
-   * still matches the room around it — dimming hard (0.34) measured at
-   * luminance ~5 against surroundings of 12–15, which is exactly the black
-   * hole this replaced.
+   * Light touch. A wide, heavy blur hid the cat but turned the whole corner
+   * into fog, which read as a different room from the one the cat and owl sit
+   * in. Halving the radius and easing off the dimming keeps the shelves
+   * legible; the region is also much tighter now, so what softening remains
+   * sits right behind the animal instead of spreading across the desk.
    */
-  backdrop-filter: blur(2.2cqw) brightness(0.72) saturate(0.7);
-  -webkit-backdrop-filter: blur(2.2cqw) brightness(0.72) saturate(0.7);
-  /* `currentColor` rather than a literal: a mask reads only alpha, so the hue
-     is irrelevant and a hex here would be a theme value that isn't one. */
-  mask-image: radial-gradient(ellipse at 50% 50%, currentColor 42%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, currentColor 42%, transparent 100%);
+  backdrop-filter: blur(1.1cqw) brightness(0.86) saturate(0.92);
+  -webkit-backdrop-filter: blur(1.1cqw) brightness(0.86) saturate(0.92);
+  /*
+   * A wider opaque core than before (42% → 62%): with a smaller box, the blur
+   * has to stay at full strength across the cat itself, and only feather in
+   * the last third.
+   *
+   * `currentColor` rather than a literal: a mask reads only alpha, so the hue
+   * is irrelevant and a hex here would be a theme value that isn't one.
+   */
+  mask-image: radial-gradient(ellipse at 50% 50%, currentColor 62%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, currentColor 62%, transparent 100%);
 }
 
 /*
@@ -126,6 +132,22 @@ body {
 .wt-scene__pet-sparkles {
   position: absolute;
   pointer-events: none;
+}
+
+/*
+ * Contact shadow. Without something dark pooling where the animal meets the
+ * desk it reads as hovering, however well the backdrop is matched — this is
+ * the cheapest possible cue that it is resting on a surface.
+ */
+.wt-scene__pet-shadow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    var(--wt-color-scene-mask) 0%,
+    transparent 70%
+  );
 }
 
 /*
@@ -946,14 +968,47 @@ body {
  * frame. Five short paths flickering on the compositor is cheap enough to leave
  * running without touching the timer's own frame budget.
  */
+/*
+ * Thin. A 2.4-unit stroke on a 100-unit viewbox drew ropes; lightning is a
+ * hairline with a glow around it, so the width comes down and a drop-shadow
+ * supplies the bloom that makes it read as bright rather than merely thick.
+ */
 .wt-magic__bolt {
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.4;
+  stroke-width: 0.9;
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0;
+  filter: drop-shadow(0 0 1.4px currentColor);
   animation: wt-fork 1.15s ease-out infinite;
+}
+
+.wt-magic__spark {
+  fill: currentColor;
+  opacity: 0;
+  filter: drop-shadow(0 0 1.6px currentColor);
+  /* Without these an SVG transform pivots on the viewbox origin, so scaling
+     would slide each spark across the scene instead of twinkling in place. */
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wt-spark 2.3s ease-in-out infinite;
+}
+
+@keyframes wt-spark {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  45% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 0.15;
+    transform: scale(0.8);
+  }
 }
 
 @keyframes wt-fork {
@@ -1245,6 +1300,57 @@ body {
   }
 }
 
+/* ── The popped-out window ─────────────────────────────────────────────── */
+
+/*
+ * The floating window is around 460px wide, which trips the phone breakpoint
+ * above — and that hid every in-scene control inside it, including the ✕ that
+ * closes it, leaving the pop-out with no way out but the OS window chrome.
+ *
+ * Narrow is not the same as *touch*: this is a small desktop window with a
+ * mouse, so it keeps the desktop treatment. These win on specificity, so they
+ * do not depend on source order relative to the media query.
+ */
+.wt-root--pip {
+  padding: 0;
+  align-items: center;
+}
+
+.wt-root--pip .wt-scene {
+  width: min(100%, calc(100dvh * var(--wt-scene-ratio)));
+}
+
+.wt-root--pip .wt-orb {
+  display: flex;
+}
+
+/*
+ * The ✕ is sized as a fraction of the artwork, which lands at 22px in a window
+ * this small — under the 24px minimum target size (WCAG 2.5.8), and it is the
+ * only way out of the pop-out. A pixel floor keeps it hittable at any size.
+ */
+.wt-root--pip .wt-orb--compact {
+  min-width: 32px;
+}
+
+.wt-root--pip .wt-mobilebar {
+  display: none;
+}
+
+.wt-root--pip .wt-readout {
+  transform: translate(-50%, -50%);
+}
+
+.wt-root--pip .wt-readout__value,
+.wt-root--pip .wt-readout__input {
+  font-size: 8.6cqw;
+}
+
+.wt-root--pip .wt-musicpicker__options {
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── Reduced motion ────────────────────────────────────────────────────── */
 
 /*
@@ -1262,7 +1368,7 @@ body {
     animation: none;
   }
 
-  /* The spell keeps its glow but stops flickering; forks are removed entirely. */
+  /* The spell keeps its glow but stops flickering; forks and sparks go. */
   .wt-magic__bolts {
     display: none;
   }

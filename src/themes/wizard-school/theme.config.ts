@@ -205,11 +205,15 @@ export const wizardSchoolTheme: Theme = {
         widthPercent: 17,
         // Cyan, matching the swirl the toad already sits in on the sheet.
         aura: { colour: 'rgba(95, 216, 208, 0.3)', scale: 2.3 },
+        shadow: { widthScale: 0.78, heightScale: 0.17, liftFraction: 0.07, opacity: 0.75 },
       },
       // Covers the painted cat and its purple aura (x≈940–1230, y≈480–870),
       // with room to spare for the mask's soft edge.
+      // Tightened around the painted cat itself (x≈960–1210, y≈470–870) rather
+      // than the whole corner. The wide version softened half the desk, which
+      // read as fog rather than as the same room the cat and owl sit in.
       erase: [
-        { leftPercent: 64.9, topPercent: 35.7, widthPercent: 26.4, heightPercent: 48.1 },
+        { leftPercent: 67.2, topPercent: 40.2, widthPercent: 20.6, heightPercent: 38.4 },
       ],
       focusXPercent: 92.8,
       focusYPercent: 90.1,
@@ -251,9 +255,13 @@ export const wizardSchoolTheme: Theme = {
         // room, and full strength makes it look pasted on.
         opacity: 0.88,
         aura: { colour: 'rgba(242, 168, 189, 0.28)', scale: 2.1 },
+        shadow: { widthScale: 0.7, heightScale: 0.15, liftFraction: 0.06, opacity: 0.7 },
       },
+      // Tightened around the painted cat itself (x≈960–1210, y≈470–870) rather
+      // than the whole corner. The wide version softened half the desk, which
+      // read as fog rather than as the same room the cat and owl sit in.
       erase: [
-        { leftPercent: 64.9, topPercent: 35.7, widthPercent: 26.4, heightPercent: 48.1 },
+        { leftPercent: 67.2, topPercent: 40.2, widthPercent: 20.6, heightPercent: 38.4 },
       ],
       focusXPercent: 52.4,
       focusYPercent: 50,

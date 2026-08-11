@@ -24,13 +24,33 @@ import { useTheme } from './ThemeProvider';
 /** How long the showy phase lasts. */
 const BURST_MS = 10_000;
 
-/** Hand-drawn forks. Viewbox is 100×100, the wand tip at roughly (50, 50). */
+/**
+ * Hand-drawn forks. Viewbox is 100×100, the wand tip at roughly (50, 50).
+ * More segments and sharper reversals than a simple zig-zag — real lightning
+ * changes direction often and unevenly, and a regular zig-zag reads as a
+ * decorative squiggle.
+ */
 const BOLTS = [
-  'M50 50 L38 30 L46 28 L30 8',
-  'M50 50 L66 34 L58 31 L74 14',
-  'M50 50 L34 58 L42 62 L24 74',
-  'M50 50 L64 66 L56 68 L72 84',
-  'M50 50 L52 26 L58 32 L54 6',
+  'M50 50 L44 40 L48 37 L38 26 L43 24 L31 9',
+  'M50 50 L59 41 L55 38 L67 29 L62 26 L75 13',
+  'M50 50 L42 57 L46 60 L35 67 L39 70 L25 79',
+  'M50 50 L58 58 L54 61 L64 68 L60 71 L73 82',
+  'M50 50 L52 38 L56 40 L53 27 L58 29 L55 8',
+  'M50 50 L40 52 L43 56 L30 59 L34 63 L18 66',
+];
+
+/** Loose motes around the tip. Positions are viewbox units. */
+const SPARKS = [
+  { cx: 62, cy: 30, r: 1.5, delay: 0.1 },
+  { cx: 36, cy: 33, r: 1.1, delay: 0.55 },
+  { cx: 70, cy: 47, r: 1.3, delay: 0.9 },
+  { cx: 30, cy: 60, r: 1.6, delay: 0.35 },
+  { cx: 57, cy: 68, r: 1.2, delay: 1.25 },
+  { cx: 46, cy: 22, r: 1.4, delay: 0.75 },
+  { cx: 78, cy: 62, r: 1, delay: 1.05 },
+  { cx: 24, cy: 44, r: 1.2, delay: 1.45 },
+  { cx: 66, cy: 78, r: 1.1, delay: 0.2 },
+  { cx: 40, cy: 76, r: 1.3, delay: 1.6 },
 ];
 
 interface MagicStrikeProps {
@@ -71,20 +91,35 @@ export function MagicStrike({ active, runToken }: MagicStrikeProps) {
     >
       <div className="wt-magic__glow" />
 
-      {bursting && (
-        <svg className="wt-magic__bolts" viewBox="0 0 100 100" focusable="false">
-          {BOLTS.map((d, index) => (
+      {/*
+        Sparks keep drifting after the forks stop — a wand that has just thrown
+        lightning should still be crackling, and ten small circles fading in and
+        out cost far less than the bolts do.
+      */}
+      <svg className="wt-magic__bolts" viewBox="0 0 100 100" focusable="false">
+        {bursting &&
+          BOLTS.map((d, index) => (
             <path
               key={d}
               d={d}
               className="wt-magic__bolt"
               // Staggered so the forks fire in sequence rather than as one
               // flash — that is what reads as lightning rather than a strobe.
-              style={{ animationDelay: `${index * 0.17}s` }}
+              style={{ animationDelay: `${index * 0.13}s` }}
             />
           ))}
-        </svg>
-      )}
+
+        {SPARKS.map((spark) => (
+          <circle
+            key={`${spark.cx}-${spark.cy}`}
+            className="wt-magic__spark"
+            cx={spark.cx}
+            cy={spark.cy}
+            r={spark.r}
+            style={{ animationDelay: `${spark.delay}s` }}
+          />
+        ))}
+      </svg>
     </div>
   );
 }
