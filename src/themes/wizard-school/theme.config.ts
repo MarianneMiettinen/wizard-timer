@@ -17,18 +17,24 @@
 
 import type { Theme } from '../theme.types';
 
+/**
+ * Where `public/` is served from. Respects vite's `base`, so the music keeps
+ * resolving if the app is ever hosted under a sub-path.
+ */
+const BASE = import.meta.env.BASE_URL;
+
 // Imported, not written as string paths, so the bundler fingerprints and
 // includes them. A bare '/assets/x.png' string would silently 404 in the build.
 import sceneCat from './assets/scene-cat.png';
 import sceneOwl from './assets/scene-owl.png';
 import petsSheet from './assets/pets-sheet.png';
 import puffArt from './assets/puff.png';
-import completeSound from './assets/spell-complete.wav';
+import completeSound from './assets/sounds/universfield-bell-ring-123742.mp3';
 import clickSound from './assets/sounds/matthewvakaliuk73627-mouse-click.mp3';
 import startSound from './assets/sounds/daviddumais-magical-spell-cast.mp3';
 import pauseSound from './assets/sounds/freesound-clockwork-timer.mp3';
 import resetSound from './assets/sounds/biww-fire-burst-flame-sound-effect.mp3';
-import scrollSound from './assets/sounds/freesound_community-magical-hit.mp3';
+import scrollSound from './assets/sounds/liecio-crumping-paper-scroll-parchment.mp3';
 import catSound from './assets/sounds/cat.mp3';
 import owlSound from './assets/sounds/lazychillzone-owl-hooting.mp3';
 
@@ -103,6 +109,15 @@ export const wizardSchoolTheme: Theme = {
     // Below the wizard's hand, above the buttons, between candle and pet.
     timerXPercent: 50,
     timerYPercent: 69,
+
+    // Centred on the burst already painted at the wand tip, so the effect looks
+    // like it comes out of the wand rather than hovering near it.
+    magic: {
+      xPercent: 36.5,
+      yPercent: 27,
+      widthPercent: 26,
+      colour: '#b07cf0',
+    },
   },
 
   pets: [
@@ -277,12 +292,57 @@ export const wizardSchoolTheme: Theme = {
     // seconds so it marks the pause instead of scoring it.
     pause: { src: pauseSound, gain: 1.8, maxSeconds: 2.4 },
     reset: { src: resetSound, gain: 0.5 },
-    // Rising bell arpeggio with a sparkle tail. Deliberately soft-edged: it
-    // fires when someone may have forgotten the timer was running, so it has to
-    // read as "that's done", not as an alarm.
-    complete: { src: completeSound, gain: 0.45 },
-    scroll: { src: scrollSound, gain: 0.5, maxSeconds: 1.6 },
+    complete: { src: completeSound, gain: 0.5 },
+    scroll: { src: scrollSound, gain: 0.55, maxSeconds: 1.8 },
   },
+
+  /*
+   * Music mixes. Each is a playlist, not a merged file — the dramatic pieces
+   * are short and alike, so they are chained end to end and looped, which is
+   * what makes them work as background rather than as three separate stings.
+   *
+   * Paths point into `public/`, so these stream on demand instead of being
+   * bundled. See ThemeMusicMix. Gains sit well under the sound effects: this is
+   * something to work through, not to listen to.
+   */
+  music: [
+    {
+      id: 'dramatic',
+      label: 'Dramatic',
+      tracks: [
+        `${BASE}music/prettyjohn1-dramatic.mp3`,
+        `${BASE}music/artmylife-powerful-dramatic2.mp3`,
+        `${BASE}music/sonican-dramatic-classical-orchestral-cinematic3.mp3`,
+      ],
+      gain: 0.32,
+    },
+    {
+      id: 'inspiring',
+      label: 'Inspiring',
+      tracks: [
+        `${BASE}music/luis_humanoide-cinematic-violin-uplifting-music4.mp3`,
+        `${BASE}music/nengjemping-energetic-flow-ambient-soft-piano-lo-fi5.mp3`,
+        `${BASE}music/nakaradaalexander-through-the-white-steppes7.mp3`,
+      ],
+      gain: 0.36,
+    },
+    {
+      id: 'mix',
+      label: 'Mix',
+      // Interleaved rather than grouped, so it doesn't open with every
+      // dramatic piece in a row before reaching anything calm.
+      tracks: [
+        `${BASE}music/luis_humanoide-cinematic-violin-uplifting-music4.mp3`,
+        `${BASE}music/prettyjohn1-dramatic.mp3`,
+        `${BASE}music/nengjemping-deep-focus-mode-cinematic-ambient-binaural-beats6.mp3`,
+        `${BASE}music/artmylife-powerful-dramatic2.mp3`,
+        `${BASE}music/nengjemping-energetic-flow-ambient-soft-piano-lo-fi5.mp3`,
+        `${BASE}music/sonican-dramatic-classical-orchestral-cinematic3.mp3`,
+        `${BASE}music/nakaradaalexander-through-the-white-steppes7.mp3`,
+      ],
+      gain: 0.34,
+    },
+  ],
 
   session: {
     // Chosen to line up with the painted 30/60/90 tick marks.
@@ -320,8 +380,8 @@ export const wizardSchoolTheme: Theme = {
       'Pin it to your taskbar — open the browser menu (⋮) and look for "Install page as app", or "Create shortcut" in older versions.',
     scrollWhy: 'A timer you can find in one click is a timer you actually use.',
     petPickerLabel: 'Choose your familiar',
-    soundOn: 'Sound on',
-    soundOff: 'Sound off',
+    musicPickerLabel: 'Choose your music',
+    musicOff: 'Off',
     reset: 'New candle',
     finishedHeading: 'Magic focus finished!',
     finishedBody: "When you're ready, light another.",

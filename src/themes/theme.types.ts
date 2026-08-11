@@ -244,6 +244,22 @@ export interface ThemeSceneButtons {
   hide: ThemeSceneButton;
 }
 
+/**
+ * The spell that plays at the wand while a session runs.
+ *
+ * Keep `widthPercent` small. This has to be noticeable at the edge of vision
+ * and then ignorable — it sits next to something you are trying to concentrate
+ * beside, so it earns its place by being brief and contained, not by being big.
+ */
+export interface ThemeMagic {
+  /** Centre of the effect, as % of the artwork — normally the wand tip. */
+  xPercent: number;
+  yPercent: number;
+  widthPercent: number;
+  /** Any CSS colour. Drives both the forks and the glow. */
+  colour: string;
+}
+
 export interface ThemeScene {
   /** Natural size of the artwork. Only the ratio matters; it locks the overlays. */
   aspectWidth: number;
@@ -259,6 +275,8 @@ export interface ThemeScene {
   /** Centre of the numeric readout, as % of the artwork. */
   timerXPercent: number;
   timerYPercent: number;
+  /** Where the spell effect plays. Omit and no effect is drawn. */
+  magic?: ThemeMagic;
 }
 
 /**
@@ -296,6 +314,27 @@ export interface ThemeSounds {
   complete: ThemeSoundClip | null;
   /** Unrolling the note. */
   scroll: ThemeSoundClip | null;
+}
+
+/**
+ * A background music option, offered under the MUSIC button.
+ *
+ * `tracks` play in order and then start again from the top — which is how
+ * "combining" several short pieces works here. They are not merged into one
+ * file; they are a playlist, so any of them can be reordered or dropped in this
+ * config without touching audio.
+ *
+ * Unlike every other asset, music tracks are **URLs into `public/`, not
+ * imports**. Bundling them would make the app download tens of megabytes before
+ * it could start; served as plain files they stream on demand, so nothing is
+ * fetched until someone actually picks a mix.
+ */
+export interface ThemeMusicMix {
+  id: string;
+  label: string;
+  tracks: string[];
+  /** 0–1. Music sits under the sound effects, so this is normally well below 1. */
+  gain: number;
 }
 
 export interface ThemeSession {
@@ -361,9 +400,9 @@ export interface ThemeCopy {
   scrollWhy: string;
   /** Heading of the pet chooser popover. */
   petPickerLabel: string;
-  /** Accessible names for the music toggle's two states. */
-  soundOn: string;
-  soundOff: string;
+  /** Heading of the music chooser, and its "no music" option. */
+  musicPickerLabel: string;
+  musicOff: string;
   reset: string;
   finishedHeading: string;
   finishedBody: string;
@@ -383,6 +422,7 @@ export interface Theme {
   readonly scene: ThemeScene;
   readonly pets: readonly ThemePet[];
   readonly sounds: ThemeSounds;
+  readonly music: readonly ThemeMusicMix[];
   readonly session: ThemeSession;
   readonly copy: ThemeCopy;
 }

@@ -6,6 +6,9 @@
  */
 
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { MagicStrike } from './components/MagicStrike';
+import { MobileControls } from './components/MobileControls';
+import { MusicPicker } from './components/MusicPicker';
 import { PetPicker } from './components/PetPicker';
 import { PictureInPicture, isPictureInPictureSupported } from './components/PictureInPicture';
 import { ScrollNote } from './components/ScrollNote';
@@ -17,6 +20,7 @@ import { ThemeProvider, useTheme, useThemeStyle } from './components/ThemeProvid
 import { TimerReadout } from './components/TimerReadout';
 import { describeGauge, gaugeCssVariables } from './components/gauge';
 import { useFaviconWand } from './components/useFaviconWand';
+import { useMusic } from './components/useMusic';
 import { useTabTitle } from './components/useTabTitle';
 import { useSoundboard, type SoundClips } from './components/useSoundboard';
 import {
@@ -64,14 +68,17 @@ export default function App() {
  * context that it renders the provider for.
  */
 function TimerScreen() {
-  const { colors, copy, pets, scene, session, sounds } = useTheme();
+  const { colors, copy, music, pets, scene, session, sounds } = useTheme();
   const themeStyle = useThemeStyle();
 
   const defaultPet = pets[0];
   const [petId, setPetId] = useState(defaultPet?.id ?? '');
   const [petPickerOpen, setPetPickerOpen] = useState(false);
-  const [soundOn, setSoundOn] = useState(true);
+  const [musicPickerOpen, setMusicPickerOpen] = useState(false);
+  /** null means music off, which is a real choice in the list, not an absence. */
+  const [musicMixId, setMusicMixId] = useState<string | null>(null);
   const [poppedOut, setPoppedOut] = useState(false);
+  const [runToken, setRunToken] = useState(0);
 
   const activePet = pets.find((pet) => pet.id === petId) ?? defaultPet;
 
@@ -93,7 +100,9 @@ function TimerScreen() {
     return map;
   }, [sounds, pets]);
 
-  const play = useSoundboard(clips, soundOn);
+  // Sound effects are always on now that the MUSIC button chooses music
+  // instead of muting everything.
+  const play = useSoundboard(clips, true);
 
   const playCompletionSound = useCallback(() => play('complete'), [play]);
 
@@ -104,6 +113,17 @@ function TimerScreen() {
   });
 
   const dismissPetPicker = useCallback(() => setPetPickerOpen(false), []);
+  const dismissMusicPicker = useCallback(() => setMusicPickerOpen(false), []);
+
+  const activeMix = music.find((mix) => mix.id === musicMixId) ?? null;
+
+  useMusic({
+    mix: activeMix,
+    // Runs through the focus session. Pausing the timer pauses the music too —
+    // and it keeps playing the moment a mix is chosen, so picking one is
+    // audible straight away rather than only after the next start.
+    playing: timer.status !== 'paused' && timer.status !== 'finished',
+  });
 
   /**
    * The click sound, for every button, delegated from one place. Threading a
@@ -119,7 +139,11 @@ function TimerScreen() {
 
   const handleToggle = useCallback(() => {
     // Read before toggling: after it, the status is the opposite of the action.
-    play(timer.isRunning ? 'pause' : 'start');
+    const starting = !timer.isRunning;
+    play(starting ? 'start' : 'pause');
+    // Bumped on each start so the spell's opening burst replays, rather than
+    // only firing the first time the component happens to mount.
+    if (starting) setRunToken((token) => token + 1);
     timer.toggle();
   }, [play, timer]);
 
@@ -130,6 +154,12 @@ function TimerScreen() {
 
   const handlePipClose = useCallback(() => setPoppedOut(false), []);
 
+  /**
+   * Popping out is desktop-only, but the width half of that is enforced in CSS,
+   * which already hides every in-scene control on phones. Duplicating the
+   * breakpoint in JS meant two sources of truth for one rule — and the JS copy
+   * silently won, hiding the control on desktop too.
+   */
   const pipSupported = isPictureInPictureSupported();
 
   // Screen-reader announcement. Derived rather than stored, so it can only ever
@@ -161,7 +191,9 @@ function TimerScreen() {
       // quietly burning, and pausing shouldn't punish you with darkness.
       lit={!timer.isFinished}
     >
-        <TimerReadout
+        <MagicStrike active={timer.isRunning} runToken={runToken} />
+
+      <TimerReadout
           display={timer.display}
           announcement={announcement}
           editable={!timer.isRunning}
@@ -197,14 +229,25 @@ function TimerScreen() {
         <SceneButton
           position={activePet.buttons.music}
           label={copy.musicButton}
-          accessibleLabel={soundOn ? copy.soundOn : copy.soundOff}
-          icon={soundOn ? <MusicIcon /> : <MutedMusicIcon />}
-          onClick={() => setSoundOn((on) => !on)}
-          pressed={soundOn}
-          // This button silences *everything*, not just the end chime. Without
-          // an unmistakable off state it reads as "the sounds broke".
-          dimmed={!soundOn}
+          accessibleLabel={copy.musicPickerLabel}
+          icon={activeMix ? <MusicIcon /> : <MutedMusicIcon />}
+          onClick={() => setMusicPickerOpen((open) => !open)}
+          expanded={musicPickerOpen}
+          // Off is a state worth seeing at a glance, not just a different glyph.
+          dimmed={!activeMix}
         />
+
+        {musicPickerOpen && (
+          <MusicPicker
+            anchor={activePet.buttons.music}
+            activeId={musicMixId}
+            onSelect={(id) => {
+              setMusicMixId(id);
+              setMusicPickerOpen(false);
+            }}
+            onDismiss={dismissMusicPicker}
+          />
+        )}
 
         {petPickerOpen && (
           <PetPicker
@@ -224,6 +267,41 @@ function TimerScreen() {
         (currently everything outside Chromium). A visible control that cannot
         work is worse than no control.
       */}
+      {/*
+        Same three actions as the orbs above, in a bar sized for a thumb.
+        CSS shows exactly one of the two at any width, so neither layout has to
+        know about the other.
+      */}
+      <MobileControls
+        actions={[
+          {
+            key: 'pet',
+            label: copy.petButton,
+            accessibleLabel: copy.petPickerLabel,
+            icon: <CatIcon />,
+            onClick: () => setPetPickerOpen((open) => !open),
+            expanded: petPickerOpen,
+          },
+          {
+            key: 'start',
+            label: timer.isRunning ? copy.pauseButton : copy.startButton,
+            accessibleLabel: timer.isRunning ? copy.pauseAction : copy.startAction,
+            icon: timer.isRunning ? <PauseIcon /> : <PlayIcon />,
+            onClick: handleToggle,
+            primary: true,
+          },
+          {
+            key: 'music',
+            label: copy.musicButton,
+            accessibleLabel: copy.musicPickerLabel,
+            icon: activeMix ? <MusicIcon /> : <MutedMusicIcon />,
+            onClick: () => setMusicPickerOpen((open) => !open),
+            expanded: musicPickerOpen,
+            dimmed: !activeMix,
+          },
+        ]}
+      />
+
       {pipSupported && (
         <SceneButton
           position={activePet.buttons.hide}

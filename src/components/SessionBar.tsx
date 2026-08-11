@@ -13,6 +13,7 @@
  * "you are locked in until this finishes".
  */
 
+import { NewCandleIcon } from './icons';
 import { useTheme } from './ThemeProvider';
 
 const MS_PER_MINUTE = 60_000;
@@ -57,13 +58,19 @@ export function SessionBar({
         })}
       </div>
 
+      {/*
+        Glows only while the session is over. Resetting moves the timer back to
+        idle, which clears `highlightReset` — so the glow stops the moment a
+        fresh candle appears, without anything having to remember to stop it.
+      */}
       <button
         type="button"
-        className={
-          highlightReset ? 'wt-chip wt-chip--quiet wt-chip--glow' : 'wt-chip wt-chip--quiet'
-        }
+        className={highlightReset ? 'wt-chip wt-candle-button wt-chip--glow' : 'wt-chip wt-candle-button'}
         onClick={onReset}
       >
+        <span className="wt-candle-button__icon">
+          <NewCandleIcon />
+        </span>
         {copy.reset}
       </button>
     </div>

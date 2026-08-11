@@ -11,6 +11,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { ThemePet, ThemeSceneButton } from '../themes/theme.types';
+import { useMediaQuery, WIDE_VIEWPORT } from './useMediaQuery';
 import { useTheme } from './ThemeProvider';
 
 interface PetPickerProps {
@@ -24,6 +25,7 @@ interface PetPickerProps {
 export function PetPicker({ anchor, activeId, onSelect, onDismiss }: PetPickerProps) {
   const { pets, copy } = useTheme();
   const panelRef = useRef<HTMLDivElement>(null);
+  const isWide = useMediaQuery(WIDE_VIEWPORT);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -64,12 +66,21 @@ export function PetPicker({ anchor, activeId, onSelect, onDismiss }: PetPickerPr
       className="wt-petpicker"
       role="dialog"
       aria-label={copy.petPickerLabel}
-      // Right-aligned to the button rather than centred on it, so the panel
-      // opens away from the readout instead of across it.
-      style={{
-        right: `${100 - (anchor.xPercent + anchor.radiusPercent)}%`,
-        bottom: `${100 - anchor.yPercent + anchor.radiusPercent * 1.35}%`,
-      }}
+      /*
+       * Anchored to its button only on wide screens. On a phone the button it
+       * belongs to doesn't exist — the mobile bar replaced it — and inline
+       * styles would beat the stylesheet, stranding the panel off-screen.
+       */
+      style={
+        isWide
+          ? {
+              // Right-aligned to the button rather than centred on it, so the
+              // panel opens away from the readout instead of across it.
+              right: `${100 - (anchor.xPercent + anchor.radiusPercent)}%`,
+              bottom: `${100 - anchor.yPercent + anchor.radiusPercent * 1.35}%`,
+            }
+          : undefined
+      }
     >
       <p className="wt-petpicker__title">{copy.petPickerLabel}</p>
       <div className="wt-petpicker__options">

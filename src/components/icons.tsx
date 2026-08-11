@@ -46,6 +46,20 @@ export function CatIcon() {
   );
 }
 
+/** A fresh, unlit candle with a flame — for "start another session". */
+export function NewCandleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
+      {/* Flame */}
+      <path d="M12 1.6 c2.4 3.4 3.6 5 3.6 7 a3.6 3.6 0 0 1 -7.2 0 c0 -2 1.2 -3.6 3.6 -7 Z" />
+      {/* Wax */}
+      <rect x="8" y="11.4" width="8" height="9.4" rx="1.6" opacity="0.92" />
+      {/* Holder */}
+      <rect x="6.2" y="20.6" width="11.6" height="2.1" rx="1.05" />
+    </svg>
+  );
+}
+
 export function CloseIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none">
