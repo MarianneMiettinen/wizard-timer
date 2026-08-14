@@ -9,10 +9,9 @@
  * dismissable only by its own button is a trap on touch screens.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import type { ThemeSceneButton } from '../themes/theme.types';
 import { MusicIcon, MutedMusicIcon } from './icons';
-import { useMediaQuery, WIDE_VIEWPORT } from './useMediaQuery';
 import { useTheme } from './ThemeProvider';
 
 interface MusicPickerProps {
@@ -26,7 +25,6 @@ interface MusicPickerProps {
 export function MusicPicker({ anchor, activeId, onSelect, onDismiss }: MusicPickerProps) {
   const { music, copy } = useTheme();
   const panelRef = useRef<HTMLDivElement>(null);
-  const isWide = useMediaQuery(WIDE_VIEWPORT);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -56,15 +54,13 @@ export function MusicPicker({ anchor, activeId, onSelect, onDismiss }: MusicPick
       className="wt-musicpicker"
       role="dialog"
       aria-label={copy.musicPickerLabel}
-      /* Anchored to its button only on wide screens — see PetPicker. */
+      /* Published as variables, not as positions — see ScrollNote for why.
+         Left-aligned to the button so it opens away from the readout. */
       style={
-        isWide
-          ? {
-              // Left-aligned to the button so it opens away from the readout.
-              left: `${anchor.xPercent - anchor.radiusPercent}%`,
-              bottom: `${100 - anchor.yPercent + anchor.radiusPercent * 1.35}%`,
-            }
-          : undefined
+        {
+          '--wt-pick-left': `${anchor.xPercent - anchor.radiusPercent}%`,
+          '--wt-pick-bottom': `${100 - anchor.yPercent + anchor.radiusPercent * 1.35}%`,
+        } as CSSProperties
       }
     >
       <p className="wt-musicpicker__title">{copy.musicPickerLabel}</p>

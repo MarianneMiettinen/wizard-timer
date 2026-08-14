@@ -58,6 +58,19 @@ body {
   aspect-ratio: var(--wt-scene-aspect);
   container-type: inline-size;
   flex: none;
+  /* Clips the zooming layer on phones; a no-op at desktop scale. */
+  overflow: hidden;
+}
+
+/*
+ * The zooming layer. On desktop it sits exactly on top of the frame above, so
+ * the two are indistinguishable. On a phone it is enlarged and panned inside
+ * the frame, and because the artwork *and* every overlay locked to it share
+ * this box, they all magnify together and stay aligned.
+ */
+.wt-scene__inner {
+  position: absolute;
+  inset: 0;
 }
 
 .wt-scene__art {
@@ -548,6 +561,9 @@ body {
 
 .wt-petpicker {
   position: absolute;
+  /* Anchor comes in as variables so the phone layout can override it. */
+  right: var(--wt-pick-right);
+  bottom: var(--wt-pick-bottom);
   padding: 1.2cqw;
   border: 0.14cqw solid var(--wt-color-accent);
   border-radius: 1.4cqw;
@@ -658,6 +674,8 @@ body {
 
 .wt-musicpicker {
   position: absolute;
+  left: var(--wt-pick-left);
+  bottom: var(--wt-pick-bottom);
   padding: 1.2cqw;
   border: 0.14cqw solid var(--wt-color-accent);
   border-radius: 1.4cqw;
@@ -1067,6 +1085,251 @@ body {
   filter: brightness(1.2);
 }
 
+/* ── The note, rolled and unrolled ─────────────────────────────────────── */
+
+/*
+ * One element in four positions. Left/top/width are transitioned rather than
+ * transform, because the phases differ in size as well as place — so rolling
+ * back to the corner is a single property change, not a choreographed flight.
+ */
+.wt-scrollnote {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  transition:
+    left 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    top 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/*
+ * Parked position. Kept on the corner class rather than the base so that the
+ * phone rule overrides like for like — mixing the two levels produced a
+ * cascade where some declarations from the same block won and others lost.
+ */
+.wt-scrollnote--corner {
+  left: var(--wt-scroll-left);
+  top: var(--wt-scroll-top);
+  /*
+   * A share of the picture, but never smaller than a fingertip. `max()` does
+   * the whole job in one declaration: ~47px beside a desktop ✕, and a floor of
+   * 44px on a phone where the same share would come out at 22px.
+   *
+   * Deliberately no media-query override. Overriding this from inside one meant
+   * the parked position was set in two places, and the two disagreed.
+   */
+  width: max(var(--wt-scroll-width), 44px);
+}
+
+/* Centre stage, and big. */
+.wt-scrollnote--featured,
+.wt-scrollnote--open,
+.wt-scrollnote--sealing {
+  left: 50%;
+  top: 47%;
+  width: 62%;
+}
+
+.wt-scrollnote--featured {
+  width: 34%;
+  animation: wt-scroll-arrive 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Lands with a bit of weight rather than simply fading in. */
+@keyframes wt-scroll-arrive {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(-14deg);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.06) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+}
+
+.wt-scrollnote__roll {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  filter: drop-shadow(0 0.4cqw 0.9cqw var(--wt-color-background));
+}
+
+.wt-scrollnote__roll > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.wt-scrollnote__roll:focus-visible {
+  outline: 0.3cqw solid var(--wt-color-focus-ring);
+  outline-offset: 0.3cqw;
+  border-radius: 0.6cqw;
+}
+
+.wt-scrollnote--featured .wt-scrollnote__roll {
+  animation: wt-scroll-beckon 2.4s ease-in-out infinite;
+}
+
+@keyframes wt-scroll-beckon {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2.5%);
+  }
+}
+
+.wt-scrollnote__hint {
+  display: block;
+  margin-top: 1cqw;
+  font-family: var(--wt-font-display);
+  font-size: 2cqw;
+  color: var(--wt-color-accent);
+}
+
+/* The unrolled sheet. */
+.wt-scrollnote__sheet {
+  padding: 2.4cqw 2.8cqw;
+  border: 0.16cqw solid var(--wt-color-parchment-edge);
+  border-radius: 0.8cqw;
+  background: linear-gradient(
+    180deg,
+    var(--wt-color-parchment-edge) 0%,
+    var(--wt-color-parchment) 6%,
+    var(--wt-color-parchment) 94%,
+    var(--wt-color-parchment-edge) 100%
+  );
+  color: var(--wt-color-parchment-ink);
+  box-shadow: 0 1cqw 3cqw var(--wt-color-background);
+  text-align: left;
+  transform-origin: 50% 0;
+  animation: wt-scroll-unroll 520ms ease-out;
+}
+
+@keyframes wt-scroll-unroll {
+  0% {
+    transform: scaleY(0.04);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.wt-scrollnote--sealing .wt-scrollnote__sheet {
+  animation: wt-scroll-reroll 900ms ease-in 200ms forwards;
+}
+
+@keyframes wt-scroll-reroll {
+  0% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(0.04);
+    opacity: 0;
+  }
+}
+
+.wt-scrollnote__heading {
+  margin: 0 0 1.4cqw;
+  font-family: var(--wt-font-display);
+  font-size: 2.9cqw;
+  text-align: center;
+}
+
+.wt-scrollnote__steps {
+  margin: 0 0 1.4cqw;
+  padding: 0 0 0 3.4cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1cqw;
+}
+
+.wt-scrollnote__step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9cqw;
+  font-size: 1.85cqw;
+  line-height: 1.45;
+}
+
+.wt-scrollnote__steps ::marker {
+  font-family: var(--wt-font-display);
+  font-weight: 700;
+}
+
+.wt-scrollnote__arrow {
+  width: 2.2cqw;
+  flex: none;
+  margin-top: 0.15cqw;
+  color: var(--wt-color-parchment-seal);
+}
+
+.wt-scrollnote__why {
+  margin: 0 0 1.8cqw;
+  font-size: 1.55cqw;
+  font-style: italic;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.wt-scrollnote__seal-button {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.9cqw 1.4cqw;
+  border: 0.16cqw solid var(--wt-color-parchment-seal);
+  border-radius: 999px;
+  background: var(--wt-color-parchment-seal);
+  color: var(--wt-color-parchment);
+  font-family: var(--wt-font-display);
+  font-size: 1.9cqw;
+  cursor: pointer;
+  transition: filter 160ms ease;
+}
+
+.wt-scrollnote__seal-button:hover {
+  filter: brightness(1.12);
+}
+
+.wt-scrollnote__seal-button:focus-visible {
+  outline: 0.3cqw solid var(--wt-color-focus-ring);
+  outline-offset: 0.3cqw;
+}
+
+/* Stamped down hard, then held. */
+.wt-scrollnote__seal {
+  display: block;
+  width: 9cqw;
+  margin: 0 auto;
+  animation: wt-seal-stamp 420ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+@keyframes wt-seal-stamp {
+  0% {
+    transform: scale(2.2) rotate(-18deg);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
 /* ── Mobile control bar ────────────────────────────────────────────────── */
 
 /* Hidden by default; the media query below swaps it in for the orbs. */
@@ -1116,9 +1379,35 @@ body {
     gap: 0.75rem;
   }
 
+  /*
+   * Zoomed to fill the screen. The artwork is landscape (1.25) and a phone is
+   * portrait, so filling the height means cropping width heavily — which is
+   * exactly the trade asked for: the candle goes, the wizard and the pet stay.
+   *
+   * The frame is a tall box; the layer inside is enlarged until it covers that
+   * height, then panned right so the window lands on the wizard and his
+   * familiar rather than the candle at the far left.
+   */
   .wt-scene {
-    /* No competing controls to leave room for; take the full width. */
     width: 100%;
+    height: 62dvh;
+    /* Height now drives the box, so the artwork ratio must not also. */
+    aspect-ratio: auto;
+  }
+
+  .wt-scene__inner {
+    /* 167.7% of the frame's width covers its height at the artwork's ratio. */
+    inset: auto;
+    top: 0;
+    left: -57%;
+    width: 167.7%;
+    height: 100%;
+  }
+
+  /* The painted frame is cropped away at this zoom, so its glow would only
+     show as a stray bright line across the picture. */
+  .wt-scene__frame {
+    display: none;
   }
 
   /* The orbs are replaced, not resized. */
@@ -1142,8 +1431,9 @@ body {
 
   .wt-mobilebar__button {
     flex: 1;
-    /* 44px floor: WCAG 2.1 AA target size. */
-    min-height: 44px;
+    /* Comfortably past the 44px floor — these are the three controls the whole
+       app runs on, and thumbs are not styluses. */
+    min-height: 58px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1177,7 +1467,7 @@ body {
 
   .wt-mobilebar__icon {
     display: block;
-    width: 1.15rem;
+    width: 1.5rem;
     line-height: 0;
   }
 
@@ -1188,7 +1478,7 @@ body {
   }
 
   .wt-mobilebar__label {
-    font-size: 0.68rem;
+    font-size: 0.78rem;
     letter-spacing: 0.06em;
   }
 
@@ -1198,9 +1488,11 @@ body {
     transform: translate(-50%, -82%);
   }
 
+  /* Large, but stopping short of the wand and the wizard's face, which sit in
+     the upper-left of the cropped frame. */
   .wt-readout__value,
   .wt-readout__input {
-    font-size: 13cqw;
+    font-size: 19cqw;
   }
 
   .wt-readout__input {
@@ -1238,16 +1530,16 @@ body {
 
   .wt-petpicker__option {
     flex: 1;
-    gap: 0.3rem;
-    padding: 0.45rem;
-    min-height: 44px;
+    gap: 0.35rem;
+    padding: 0.55rem 0.3rem;
+    min-height: 62px;
     border-width: 1px;
     border-radius: 0.6rem;
-    font-size: 0.72rem;
+    font-size: 0.8rem;
   }
 
   .wt-petpicker__thumb {
-    width: 2.6rem;
+    width: 3.1rem;
     border-width: 1px;
   }
 
@@ -1260,16 +1552,85 @@ body {
   }
 
   .wt-musicpicker__option {
-    min-height: 44px;
+    min-height: 54px;
     gap: 0.5rem;
-    padding: 0.4rem 0.7rem;
+    padding: 0.5rem 0.7rem;
     border-width: 1px;
     border-radius: 0.6rem;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
   }
 
   .wt-musicpicker__icon {
-    width: 1rem;
+    width: 1.2rem;
+  }
+
+  /* ── The note, on a phone ──────────────────────────────────────────── */
+
+  /*
+   * Stood on its end against the right edge. Rotating it costs no layout width
+   * — the picture is already cropped tight, and a scroll lying flat would eat
+   * a strip across the top that the wizard needs.
+   */
+  /* The finished panel sits high, clear of the enlarged readout below it. */
+  .wt-finished {
+    top: 20%;
+  }
+
+  /* Nearly full width — 62% of a 359px picture is too narrow for two steps. */
+  .wt-scene .wt-scrollnote--featured {
+    width: 52%;
+  }
+
+  .wt-scene .wt-scrollnote--open,
+  .wt-scene .wt-scrollnote--sealing {
+    width: 92%;
+  }
+
+  /* Sized in rem below here: these are words to read, not scenery to scale. */
+  .wt-scrollnote__sheet {
+    padding: 0.9rem 1rem;
+    border-radius: 0.6rem;
+  }
+
+  .wt-scrollnote__heading {
+    margin-bottom: 0.6rem;
+    font-size: 1.05rem;
+  }
+
+  .wt-scrollnote__steps {
+    padding-left: 1.2rem;
+    gap: 0.55rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .wt-scrollnote__step {
+    gap: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .wt-scrollnote__arrow {
+    width: 0.95rem;
+    margin-top: 0.1rem;
+  }
+
+  .wt-scrollnote__why {
+    margin-bottom: 0.8rem;
+    font-size: 0.78rem;
+  }
+
+  .wt-scrollnote__seal-button {
+    min-height: 48px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .wt-scrollnote__hint {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .wt-scrollnote__seal {
+    width: 3rem;
   }
 
   /* Readable at rem sizes instead of shrinking with the picture. */
@@ -1371,6 +1732,17 @@ body {
   /* The spell keeps its glow but stops flickering; forks and sparks go. */
   .wt-magic__bolts {
     display: none;
+  }
+
+  /* The note still appears and seals — it just doesn't fly, unroll or bob. */
+  .wt-scrollnote,
+  .wt-scrollnote__roll,
+  .wt-scrollnote__sheet,
+  .wt-scrollnote__seal,
+  .wt-scrollnote--featured,
+  .wt-scrollnote--sealing .wt-scrollnote__sheet {
+    animation: none;
+    transition-duration: 1ms;
   }
 
   .wt-magic__glow {

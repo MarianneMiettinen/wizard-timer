@@ -57,6 +57,7 @@ export const wizardSchoolTheme: Theme = {
     parchment: '#e8d7ac',
     parchmentEdge: '#b99e6f',
     parchmentInk: '#3a2a12',
+    parchmentSeal: '#8e2733',
     // Sampled from the wall beside the printed candle, which reads [6,2,0] to
     // [16,8,1]. Near-black, which is why erasing the candle is invisible.
     sceneMask: '#050301',
@@ -387,6 +388,10 @@ export const wizardSchoolTheme: Theme = {
     scrollPin:
       'Pin it to your taskbar — open the browser menu (⋮) and look for "Install page as app", or "Create shortcut" in older versions.',
     scrollWhy: 'A timer you can find in one click is a timer you actually use.',
+    scrollSeal: 'I saved the Wizard Timer',
+    scrollOpenHint: 'Open the scroll',
+    scrollCornerLabel: 'How to keep the Wizard Timer close',
+    scrollClose: 'Roll the scroll back up',
     petPickerLabel: 'Choose your familiar',
     musicPickerLabel: 'Choose your music',
     musicOff: 'Off',

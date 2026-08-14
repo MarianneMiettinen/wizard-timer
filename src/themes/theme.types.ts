@@ -37,6 +37,8 @@ export interface ThemeColors {
   parchment: string;
   parchmentEdge: string;
   parchmentInk: string;
+  /** Wax the note is sealed with once the reader says they've saved it. */
+  parchmentSeal: string;
   /**
    * Paints over the part of the printed candle that has already burned away.
    * Must match the artwork's wall behind the candle, or the erased strip shows
@@ -411,6 +413,13 @@ export interface ThemeCopy {
   scrollBookmark: string;
   scrollPin: string;
   scrollWhy: string;
+  /** Confirms the reader has saved it, and seals the note shut. */
+  scrollSeal: string;
+  /** Nudge under the scroll the first time it appears in the middle. */
+  scrollOpenHint: string;
+  /** Accessible name for the rolled-up scroll once it lives in the corner. */
+  scrollCornerLabel: string;
+  scrollClose: string;
   /** Heading of the pet chooser popover. */
   petPickerLabel: string;
   /** Heading of the music chooser, and its "no music" option. */

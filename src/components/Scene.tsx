@@ -121,10 +121,21 @@ interface SceneProps {
   gauge: GaugeState;
   durationMs: number;
   lit: boolean;
+  /**
+   * Overlays that belong to the *picture* — they must stay locked to it, so
+   * they live inside the zooming layer and scale with the art on mobile.
+   */
+  artwork?: ReactNode;
+  /**
+   * Chrome that belongs to the *screen* — readout, buttons, sheets. Stays
+   * outside the zoom, so it keeps its own size however far the art is
+   * magnified. On desktop the two layers are identical, so this is a no-op
+   * there.
+   */
   children: ReactNode;
 }
 
-export function Scene({ pet, gauge, durationMs, lit, children }: SceneProps) {
+export function Scene({ pet, gauge, durationMs, lit, artwork, children }: SceneProps) {
   const { scene, copy } = useTheme();
 
   const style = {
@@ -142,7 +153,14 @@ export function Scene({ pet, gauge, durationMs, lit, children }: SceneProps) {
 
   return (
     <div className="wt-scene" style={style}>
-      <img className="wt-scene__art" src={pet.scene} alt={copy.sceneAlt} />
+      {/*
+        The zooming layer. It always keeps the artwork's own proportions; on a
+        phone it is enlarged and panned inside the clipping frame above, and
+        everything positioned in here travels with the picture because they all
+        share this one coordinate space.
+      */}
+      <div className="wt-scene__inner">
+        <img className="wt-scene__art" src={pet.scene} alt={copy.sceneAlt} />
 
       {/* Painted-in UI the app replaces with live equivalents. */}
       {scene.erase.map((rect, index) => (
@@ -174,12 +192,15 @@ export function Scene({ pet, gauge, durationMs, lit, children }: SceneProps) {
         />
       ))}
 
-      {pet.overlay && <PetOverlay overlay={pet.overlay} />}
+        {pet.overlay && <PetOverlay overlay={pet.overlay} />}
 
-      {/* The painted gold frame, re-lit in the candle's current colour. */}
-      <div className="wt-scene__frame" aria-hidden="true" />
+        {/* The painted gold frame, re-lit in the candle's current colour. */}
+        <div className="wt-scene__frame" aria-hidden="true" />
 
-      <CandleGauge gauge={gauge} lit={lit} durationMs={durationMs} />
+        <CandleGauge gauge={gauge} lit={lit} durationMs={durationMs} />
+
+        {artwork}
+      </div>
 
       {children}
     </div>

@@ -9,9 +9,8 @@
  * dismissed by the button that opened it is a trap on touch screens.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import type { ThemePet, ThemeSceneButton } from '../themes/theme.types';
-import { useMediaQuery, WIDE_VIEWPORT } from './useMediaQuery';
 import { useTheme } from './ThemeProvider';
 
 interface PetPickerProps {
@@ -25,7 +24,6 @@ interface PetPickerProps {
 export function PetPicker({ anchor, activeId, onSelect, onDismiss }: PetPickerProps) {
   const { pets, copy } = useTheme();
   const panelRef = useRef<HTMLDivElement>(null);
-  const isWide = useMediaQuery(WIDE_VIEWPORT);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -67,19 +65,15 @@ export function PetPicker({ anchor, activeId, onSelect, onDismiss }: PetPickerPr
       role="dialog"
       aria-label={copy.petPickerLabel}
       /*
-       * Anchored to its button only on wide screens. On a phone the button it
-       * belongs to doesn't exist — the mobile bar replaced it — and inline
-       * styles would beat the stylesheet, stranding the panel off-screen.
+       * Published as variables, not as positions — see ScrollNote for why.
+       * Right-aligned to the button rather than centred on it, so the panel
+       * opens away from the readout instead of across it.
        */
       style={
-        isWide
-          ? {
-              // Right-aligned to the button rather than centred on it, so the
-              // panel opens away from the readout instead of across it.
-              right: `${100 - (anchor.xPercent + anchor.radiusPercent)}%`,
-              bottom: `${100 - anchor.yPercent + anchor.radiusPercent * 1.35}%`,
-            }
-          : undefined
+        {
+          '--wt-pick-right': `${100 - (anchor.xPercent + anchor.radiusPercent)}%`,
+          '--wt-pick-bottom': `${100 - anchor.yPercent + anchor.radiusPercent * 1.35}%`,
+        } as CSSProperties
       }
     >
       <p className="wt-petpicker__title">{copy.petPickerLabel}</p>

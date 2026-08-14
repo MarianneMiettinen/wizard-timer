@@ -86,6 +86,44 @@ function isTimerState(value: unknown): value is TimerState {
   return true;
 }
 
+/**
+ * A single remembered yes/no, sharing this file's defensive handling of a
+ * storage that may be absent, full, or edited by hand.
+ *
+ * Theme-agnostic like everything else here: it stores a fact about what the
+ * person has done, never anything about how the app looks.
+ */
+export interface FlagStorage {
+  read(): boolean;
+  write(value: boolean): void;
+}
+
+export function createFlagStorage(namespace: string, name: string): FlagStorage {
+  const key = `${namespace}:${name}`;
+
+  return {
+    read(): boolean {
+      const store = getStore();
+      if (!store) return false;
+      try {
+        return store.getItem(key) === 'true';
+      } catch {
+        return false;
+      }
+    },
+
+    write(value: boolean): void {
+      const store = getStore();
+      if (!store) return;
+      try {
+        store.setItem(key, String(value));
+      } catch {
+        // Quota or revoked storage. Losing a flag is not worth an error.
+      }
+    },
+  };
+}
+
 export function createTimerStorage(namespace: string): TimerStorage {
   const key = `${namespace}:timer`;
 

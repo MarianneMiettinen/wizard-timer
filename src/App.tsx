@@ -31,6 +31,7 @@ import {
   PauseIcon,
   PlayIcon,
 } from './components/icons';
+import { createFlagStorage } from './core/persistence';
 import { useTimer } from './core/useTimer';
 
 import { wizardSchoolTheme } from './themes/wizard-school/theme.config';
@@ -86,6 +87,19 @@ function TimerScreen() {
    */
   const [pipActive, setPipActive] = useState(false);
   const [runToken, setRunToken] = useState(0);
+
+  /**
+   * Whether the reader has already confirmed they saved the timer. Read once on
+   * mount and remembered, so the note takes centre stage exactly once per
+   * person rather than after every finished session.
+   */
+  const scrollStorage = useMemo(() => createFlagStorage(STORAGE_KEY, 'scroll-sealed'), []);
+  const [scrollSealed, setScrollSealed] = useState(() => scrollStorage.read());
+
+  const sealScroll = useCallback(() => {
+    scrollStorage.write(true);
+    setScrollSealed(true);
+  }, [scrollStorage]);
 
   const activePet = pets.find((pet) => pet.id === petId) ?? defaultPet;
 
@@ -238,9 +252,57 @@ function TimerScreen() {
       // pause reads as "you lost it" — the artwork's whole mood is a candle
       // quietly burning, and pausing shouldn't punish you with darkness.
       lit={!timer.isFinished}
-    >
-        <MagicStrike active={timer.isRunning} runToken={runToken} />
+      /*
+       * Locked to the picture: the spell has to stay on the wand, and the orbs
+       * have to stay on the buttons painted underneath them, however far the
+       * art is zoomed on a phone.
+       */
+      artwork={
+        <>
+          <MagicStrike active={timer.isRunning} runToken={runToken} />
 
+          <SceneButton
+            position={activePet.buttons.pet}
+            label={copy.petButton}
+            accessibleLabel={copy.petPickerLabel}
+            icon={<CatIcon />}
+            onClick={() => setPetPickerOpen((open) => !open)}
+            expanded={petPickerOpen}
+          />
+
+          <SceneButton
+            position={activePet.buttons.start}
+            label={timer.isRunning ? copy.pauseButton : copy.startButton}
+            accessibleLabel={timer.isRunning ? copy.pauseAction : copy.startAction}
+            icon={timer.isRunning ? <PauseIcon /> : <PlayIcon />}
+            onClick={handleToggle}
+            emphasis
+          />
+
+          <SceneButton
+            position={activePet.buttons.music}
+            label={copy.musicButton}
+            accessibleLabel={copy.musicPickerLabel}
+            icon={activeMix ? <MusicIcon /> : <MutedMusicIcon />}
+            onClick={() => setMusicPickerOpen((open) => !open)}
+            expanded={musicPickerOpen}
+            dimmed={!activeMix}
+          />
+
+          {pipSupported && (
+            <SceneButton
+              position={activePet.buttons.hide}
+              label={copy.hideButton}
+              accessibleLabel={poppedOut ? copy.unhideAction : copy.hideAction}
+              icon={<CloseIcon />}
+              onClick={() => setPoppedOut((out) => !out)}
+              pressed={poppedOut}
+              compact
+            />
+          )}
+        </>
+      }
+    >
       <TimerReadout
           display={timer.display}
           announcement={announcement}
@@ -248,42 +310,18 @@ function TimerScreen() {
           onCommit={timer.setDurationMs}
         />
 
-        {timer.isFinished && (
+        {/*
+          Suppressed on the very first finish, when the scroll takes the middle
+          of the screen instead — two celebration panels stacked on each other
+          would fight for the same space and neither would be read.
+        */}
+        {timer.isFinished && scrollSealed && (
           <div className="wt-finished">
             <Sparkles />
             <p className="wt-finished__heading">{copy.finishedHeading}</p>
             <p className="wt-finished__body">{copy.finishedBody}</p>
           </div>
         )}
-
-        <SceneButton
-          position={activePet.buttons.pet}
-          label={copy.petButton}
-          accessibleLabel={copy.petPickerLabel}
-          icon={<CatIcon />}
-          onClick={() => setPetPickerOpen((open) => !open)}
-          expanded={petPickerOpen}
-        />
-
-        <SceneButton
-          position={activePet.buttons.start}
-          label={timer.isRunning ? copy.pauseButton : copy.startButton}
-          accessibleLabel={timer.isRunning ? copy.pauseAction : copy.startAction}
-          icon={timer.isRunning ? <PauseIcon /> : <PlayIcon />}
-          onClick={handleToggle}
-          emphasis
-        />
-
-        <SceneButton
-          position={activePet.buttons.music}
-          label={copy.musicButton}
-          accessibleLabel={copy.musicPickerLabel}
-          icon={activeMix ? <MusicIcon /> : <MutedMusicIcon />}
-          onClick={() => setMusicPickerOpen((open) => !open)}
-          expanded={musicPickerOpen}
-          // Off is a state worth seeing at a glance, not just a different glyph.
-          dimmed={!activeMix}
-        />
 
         {musicPickerOpen && (
           <MusicPicker
@@ -311,12 +349,7 @@ function TimerScreen() {
         )}
 
       {/*
-        Hidden entirely where Document Picture-in-Picture is unavailable
-        (currently everything outside Chromium). A visible control that cannot
-        work is worse than no control.
-      */}
-      {/*
-        Same three actions as the orbs above, in a bar sized for a thumb.
+        Same three actions as the orbs, in a bar sized for a thumb.
         CSS shows exactly one of the two at any width, so neither layout has to
         know about the other.
       */}
@@ -350,17 +383,21 @@ function TimerScreen() {
         ]}
       />
 
-      {pipSupported && (
-        <SceneButton
-          position={activePet.buttons.hide}
-          label={copy.hideButton}
-          accessibleLabel={poppedOut ? copy.unhideAction : copy.hideAction}
-          icon={<CloseIcon />}
-          onClick={() => setPoppedOut((out) => !out)}
-          pressed={poppedOut}
-          compact
-        />
-      )}
+      {/*
+        Parked in the gap between the wizard's hat and the ✕, derived from that
+        button rather than given its own coordinates — so it follows the corner
+        automatically on any pet whose artwork puts the ✕ somewhere slightly
+        different, and never collides with it.
+      */}
+      <ScrollNote
+        cornerXPercent={activePet.buttons.hide.xPercent - activePet.buttons.hide.radiusPercent * 3}
+        cornerYPercent={activePet.buttons.hide.yPercent}
+        cornerWidthPercent={activePet.buttons.hide.radiusPercent * 2.6}
+        celebrate={timer.isFinished && !scrollSealed}
+        onOpenSound={() => play('scroll')}
+        onSealSound={() => play('scroll')}
+        onSealed={sealScroll}
+      />
     </Scene>
   );
 
@@ -399,8 +436,6 @@ function TimerScreen() {
         onReset={handleReset}
         highlightReset={timer.isFinished}
       />
-
-      <ScrollNote onOpen={() => play('scroll')} />
     </main>
   );
 }
